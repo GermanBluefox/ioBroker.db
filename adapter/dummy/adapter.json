@@ -1,0 +1,16 @@
+{
+    "common": {
+        "name":                     "dummy",
+        "version":                  "0.0.1",
+        "mode":                     "daemon",
+        "language":                 "javascript",
+        "loglevel":                 "info"
+    },
+    "native": {
+        "test1": true,
+        "test2": 42
+    },
+    "objects": [
+
+    ]
+}
