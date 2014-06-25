@@ -9,6 +9,9 @@
 
 * Objekt-Modell dokumentieren
 * Adapter-Entwicklung dokumentieren
+* admin-ui: delete object
+* admin-ui: edit object
+* admin-ui: add object
 * Adapter bcontrol
 * Adapter hue
 * Adapter pushover

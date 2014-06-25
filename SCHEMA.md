@@ -2,14 +2,15 @@
 
 ## IDs
 
-a string with a maximum length of 250 bytes, hierarchical structured, separated by dots.
+a string with a maximum length of 250 bytes, hierarchically structured, levels separated by dots.
 
 
 ### Namespaces
 
 * system.
-* system.adapter.     - Adapter Processes
-* system.host.        - Controller Processes
+* system.host.        - Controller processes
+* system.adapter.     - Adapter processes
+* system.adapter.&lt;adapter-name&gt; - default config of an adapter
 * &lt;adaper-name&gt;.&lt;instance-number&gt;. - An adapters namespace
 
 ## States
@@ -51,36 +52,66 @@ Objects can have a *parent* attribute containing the *id* of their parent to bui
 * instance
 * meta
 * config - configuration
+* path
+* file - parent has to be a path object
+
+
 
 ### Mandatory attributes for specific types
 
 #### state
 
-* name
-* type (possible values: number, string, boolean, array, object)
+* common.name
+* common.type (possible values: number, string, boolean, array, object)
+* common.role (indicates how this state should be represented in user interfaces)
+
+##### common.role
+
+* button
+* button.long
+* button.stop
+* indicator
+* indicator.state
+* indicator.working
+* indicator.direction
+* indicator.maintenance
+* level
+* level.dimmer
+* level.blind
+* level.temperature
+* switch
+* value
+* value.temperature
+* value.humidity
+* value.brightness
+
+
+
 
 #### channel
 
-* name
+* common.name
 
 #### device
 
-* name
+* common.name
 
 #### meta
 
 #### adapter
 
-* name
-* mode
-* enabled (value should be false so new instances are disabled by default)
+* common.name
+* common.mode
+* common.enabled (value should be false so new instances are disabled by default)
+* common.language (possible values: javascript, other)
+
 
 #### instance
 
-* name
-* mode
-* host
-* enabled
+* common.name
+* common.mode
+* common.host
+* common.enabled
 
 #### host
 
