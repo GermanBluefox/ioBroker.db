@@ -47,17 +47,23 @@ handled with care, for example with additional security measures like a reverse 
 * run ```npm install``` to install dependencies
 * if CouchDB and/or Redis aren't running on localhost you need to edit conf/iobroker.json according to your needs
 
-### Install adapters
+### Install web adapters
 
 * Change to the adapter directory
 * run ```npm install``` to install dependencies
 * Change back to the iobroker root directory
-* run ```node iobroker.js add <adapter-name>```
+* run ```node iobroker.js add web```
 
 ### Start ioBroker
 
 * run ```node iobroker.js start```
 * watch the logfile ```tail -f log/iobroker.log```
+
+### Activate the web adapter
+
+* open Futon on http://&lt;couch&gt;:5984/_utils/ and set attribute *enabled* true in object system.adapter.web.0
+* watch the logfile for the line ```info: web.0 http server listening on port ...```
+* open http://&lt;host&gt;:&lt;port&gt;/admin
 
 
 ## License
