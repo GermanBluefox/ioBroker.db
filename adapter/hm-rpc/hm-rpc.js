@@ -157,6 +157,7 @@ function initRpcServer(type) {
 
                 adapter.log.info('object ' + deviceArr[i].ADDRESS + ' created');
                 adapter.setObject(deviceArr[i].ADDRESS, obj);
+                obj._id = adapter.namespace + '.' + deviceArr[i].ADDRESS;
 
                 if (obj.type === 'channel') {
                     var cid = obj.PARENT_TYPE + '.' + obj.TYPE + '.' + obj.VERSION;
@@ -241,6 +242,7 @@ function addParamsetObjects(channel, paramset) {
             native: paramset[key]
         };
 
+
         if (obj.common.type === 'number') {
             obj.common.min = paramset[key].MIN;
             obj.common.max = paramset[key].MAX;
@@ -287,8 +289,6 @@ function addParamsetObjects(channel, paramset) {
         }
 
         adapter.log.info('setObject ' + channel.native.ADDRESS + '.' + key);
-
-
         adapter.setObject(channel.native.ADDRESS + '.' + key, obj, function () {
 
         });
@@ -317,7 +317,7 @@ function getValueParamsets() {
             if (res && res.native) {
                 adapter.log.debug(key + ' found');
                 metaValues[cid] = res.native;
-                addParamsetObjects(obj.ADDRESS, res.native);
+                addParamsetObjects(obj, res.native);
                 getValueParamsets();
 
 

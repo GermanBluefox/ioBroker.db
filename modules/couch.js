@@ -58,6 +58,15 @@ function ObjectsCouch(settings) {
         });
     };
 
+    this.getObjectList = function (params, callback) {
+        couch.list(params, function (err, doc) {
+            if (err) {
+                log.debug('couchdb getObjectList ' + err);
+            }
+            callback(err, doc);
+        });
+    };
+
     this.setObject = function (id, obj, callback) {
         log.debug('couchdb setObject ' + id);
         couch.head(id, function(err, _, headers) {

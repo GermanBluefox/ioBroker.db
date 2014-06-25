@@ -106,6 +106,7 @@ function initWebserver() {
                 error: function(obj) {adapter.log.error("socket.io: "+obj)},
                 warn: function(obj) {adapter.log.warn("socket.io: "+obj)}
             });*/
+            io.on('connection', initSocket);
         });
 
     }
@@ -121,8 +122,19 @@ function initWebserver() {
                 error: function(obj) {adapter.log.error("socket.io: "+obj)},
                 warn: function(obj) {adapter.log.warn("socket.io: "+obj)}
             });*/
+            ioSsl.on('connection', initSocket);
         });
     }
 
+}
 
+function initSocket(socket) {
+
+    socket.on('getForeignStates', function (pattern, callback) {
+        adapter.getForeignStates(pattern, callback);
+    });
+
+    socket.on('getObjectList', function (params, callback) {
+        adapter.objects.getObjectList(params, callback);
+    });
 }

@@ -190,6 +190,7 @@ function Adapter(options) {
                         return;
                     }
                     for (var i = 0; i < res.rows.length; i++) {
+                        if (typeof arr[i] === 'string') arr[i] = JSON.parse(arr[i]);
                         list[keys[i]] =  arr[i] || {};
                     }
                     callback(null, list)

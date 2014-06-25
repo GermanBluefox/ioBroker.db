@@ -6,7 +6,7 @@
  *
  */
 
-var version = '0.0.2';
+var version = '0.0.3';
 process.title = 'iobroker.control';
 
 var logger = require('./modules/logger.js');
@@ -29,6 +29,9 @@ var design = {
         "_id": "_design/system",
         "language": "javascript",
         "views": {
+            "host": {
+                "map": "function(doc) { if (doc.type=='host') emit(doc.common.name, doc) }"
+            },
             "adapter": {
                 "map": "function(doc) { if (doc.type=='adapter') emit(doc.common.name, doc) }"
             },
@@ -53,6 +56,9 @@ var design = {
             },
             "enum": {
                 "map": "function(doc) { if (doc.type=='enum') emit(doc.common.name, doc) }"
+            },
+            "config": {
+                "map": "function(doc) { if (doc.type=='config') emit(doc.common.name, doc) }"
             }
 
         }

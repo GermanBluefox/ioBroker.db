@@ -1,22 +1,24 @@
 # 0.1
 
-* Adapter web
 * Adapter Unterscheidung js/anderes
 * Adapter hm-rpc
+* Adapter hm-rega
+* enum Objekte, Methode getEnumObjects in Modul adapter.js
 
 # 0.2
 
 * Objekt-Modell dokumentieren
 * Adapter-Entwicklung dokumentieren
-* Adapter hm-rega
 * Adapter bcontrol
 * Adapter hue
+* Adapter pushover
+* Adapter geofency
 
 
 # 0.3
 
 * Adapter Script-Engine
-* Adapter Logging (verschiedene Ziele: Datei, Graphite, Log4j, Loggly, RRD?, SQL?)
+* Adapter Logging (verschiedene Ziele: Datei, Graphite, Log4j, Loggly?, Xively?, RRD?, SQL?)
 * ctrl: Adapter start via schedule
 * ctrl: Adapter start/stop via subscribe
 * Adapter yr
@@ -30,8 +32,6 @@
 # 0.5
 
 * Bei iobroker.js add adapter - prüfen ob package.json im adapter-verzeichnis vorliegt und ggf. automatisch npm install aufrufen
-* Adapter pushover
-* Adapter geofency
 * CouchDB Auth
 * Redis Auth
 * Benutzerverwaltung

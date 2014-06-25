@@ -129,6 +129,7 @@ function createInstance(adapter, callback) {
                 var obj = res;
                 obj._id = 'system.adapter.' + adapter + '.' + instance;
                 obj.type = 'instance';
+                obj.parent = 'system.adapter.' + adapter;
                 delete obj._rev;
                 obj.common.enabled = false;
                 obj.common.host = firstIp;
@@ -137,7 +138,7 @@ function createInstance(adapter, callback) {
                     objects.setObject('system.adapter.' + adapter + '.' + instance + '.alive', {
                         type: 'state',
                         name: adapter + '.' + instance + '.alive',
-                        parent: adapter + '.' + instance,
+                        parent: 'system.adapter.' + adapter + '.' + instance,
                         common: {
                             type: 'bool',
                             role: 'indicator.state'
@@ -148,7 +149,7 @@ function createInstance(adapter, callback) {
                         objects.setObject('system.adapter.' + adapter + '.' + instance + '.connected', {
                             type: 'state',
                             name: adapter + '.' + instance + '.connected',
-                            parent: adapter + '.' + instance,
+                            parent: 'system.adapter.' + adapter + '.' + instance,
                             common: {
                                 type: 'bool',
                                 role: 'indicator.state'
