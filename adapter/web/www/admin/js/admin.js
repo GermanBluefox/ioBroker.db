@@ -27,7 +27,7 @@ $(document).ready(function () {
         afterInsertRow: function (rowid) {
             // Remove icon and click handler if no children available
             if (!children[rowid.slice(7)]) {
-                $('[id="' + rowid + '" td.sgcollapsed').empty().removeClass('ui-sgcollapsed sgcollapsed');
+                $('td.sgcollapsed', '[id="' + rowid + '"').empty().removeClass('ui-sgcollapsed sgcollapsed');
             }
         },
         onSelectRow: function (rowid, e) {
@@ -162,7 +162,7 @@ $(document).ready(function () {
             afterInsertRow: function (rowid) {
                 // Remove icon and click handler if no children available
                 if (!children[rowid.slice(7)]) {
-                    $('tr[id="' + rowid + '"] td.ui-sgcollapsed.sgcollapsed').empty().removeClass('ui-sgcollapsed sgcollapsed');
+                    $('td.sgcollapsed', '[id="' + rowid + '"').empty().removeClass('ui-sgcollapsed sgcollapsed');
                 }
             },
             gridComplete: function () {
