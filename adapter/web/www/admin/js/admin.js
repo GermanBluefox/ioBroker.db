@@ -27,7 +27,7 @@ $(document).ready(function () {
         afterInsertRow: function (rowid) {
             // Remove icon and click handler if no children available
             if (!children[rowid.slice(7)]) {
-                $('td.sgcollapsed', '[id="' + rowid + '"').empty().removeClass('ui-sgcollapsed sgcollapsed');
+                $('[id="' + rowid + '" td.sgcollapsed').empty().removeClass('ui-sgcollapsed sgcollapsed');
             }
         },
         onSelectRow: function (rowid, e) {
