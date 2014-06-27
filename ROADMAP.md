@@ -31,6 +31,7 @@
 * Dateien (Attachments) in CouchDB
 * Adapter webserver -> Beginn Portierung ioBroker.vis (DashUI), ioBroker.mobile (yahui)
 * Adapter hm-rpc: binrpc implementieren, CUxD Unterstützung
+* Adapter dummy-php
 
 # 0.5
 
@@ -42,7 +43,8 @@
 
 
 # 0.6
-
+* Adapter dummy-py
+* Adapter dummy-rb
 
 # 0.7
 

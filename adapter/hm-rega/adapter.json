@@ -1,0 +1,27 @@
+{
+    "common": {
+        "name":                     "hm-rega",
+        "version":                  "0.0.1",
+        "mode":                     "daemon",
+        "language":                 "javascript",
+        "loglevel":                 "info"
+    },
+    "native": {
+        "ip":                       "172.16.23.3",
+        "port":                     8181,
+        "polling":                  true,
+        "pollingInterval":          30,
+        "pollingTrigger":           "BidCos-RF:50.PRESS_SHORT",
+        "rfdAdapter":               "hm-rpc.0",
+        "hs485dAdapter":            null
+    },
+    "objects": [
+        {
+            "_id": "_design/hm-rega",
+            "language": "javascript",
+            "views": {
+
+            }
+        }
+    ]
+}

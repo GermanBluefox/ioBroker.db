@@ -39,21 +39,22 @@ Following attributes have to exist in every object:
 
 ### Tree structure
 
-Objects can have a *parent* attribute containing the *id* of their parent to build a tree structure. (Restriction to 3 Levels?)
+Objects can have a *parent* attribute containing the *id* of their parent to build a tree structure. This should be
+limited to 3 levels (except for objects of type path)
 
 ### Object types
 
-* state
-* channel - object to group one or more states
-* device - object to group one or more channels or state
+* state - parent should be of type channel, device, instance or host
+* channel - object to group one or more states. parent should be device
+* device - object to group one or more channels or state. should have no parent.
 * enum
 * host
 * adapter
-* instance
+* instance - parent has to be of type adapter
 * meta
 * config - configuration
 * path
-* file - parent has to be a path object
+* file - parent has to be of type path
 
 
 
@@ -98,7 +99,17 @@ Objects can have a *parent* attribute containing the *id* of their parent to bui
 
 #### meta
 
+id
+
+ * *&lt;adapter-name&gt;.&lt;instance-number&gt;.meta.&lt;meta-name&gt;*
+ * *&lt;adapter-name&gt;.meta.&lt;meta-name&gt;*
+ * system.*meta.&lt;meta-name&gt;*
+
+
+
 #### adapter
+
+id *system.adapter.&lt;adapter.name&gt;*
 
 * common.name
 * common.mode
@@ -108,11 +119,35 @@ Objects can have a *parent* attribute containing the *id* of their parent to bui
 
 #### instance
 
+id *system.adapter.&lt;adapter.name&gt;.&lt;instance-number&gt;*
+
 * common.name
-* common.mode
-* common.host
+* common.host (host where the adapter should be started at - object *system.host.&lt;host&gt;* must exist
 * common.enabled
+* common.mode (possible values see below)
+
+##### instance common.mode
+
+* **daemon** - always running process (will be restarted if process exits)
+* **subscribe** - is started when state *system.adapter.&lt;adapter-name&gt;.&lt;instance-number&gt;.alive* changes to *true*. Is killed when *.alive* changes to *false* and sets *.alive* to *false* if process exits (will **not** be restarted when process exits)
+* **schedule** - is started by schedule found in *system.adapter.&lt;adapter-name&gt;.&lt;instance-number&gt;.schedule* - reacts on changes of *.schedule* by rescheduling with new state
+
+
 
 #### host
 
+id *system.host.&lt;host&gt;*
+
 #### config
+
+#### path
+
+* common.name (folder name)
+* common.children (array of child objects of the type path)
+
+#### file
+
+* parent (id of a path object)
+* common.name
+* common.size (size in kBytes)
+* CouchDB-Attachment

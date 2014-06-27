@@ -4,6 +4,15 @@ $(document).ready(function () {
     $('#tabs').tabs();
     $('#tabs ul.ui-tabs-nav').prepend('<li class="header">ioBroker</li>');
 
+    var $dialogObject = $('#dialog-object');
+    $dialogObject.dialog({
+        autoOpen:   false,
+        modal:      true,
+        width: 640,
+        height: 480,
+        buttons: []
+    });
+
     var $gridObjects = $('#grid-objects');
     $gridObjects.jqGrid({
         datatype: 'local',
@@ -11,7 +20,13 @@ $(document).ready(function () {
         colModel :[
             {name:'_id', index:'_id', width: 450, fixed: true},
             {name:'name', index:'name'},
-            {name:'type', index:'type', width: 120, fixed: true}
+            {name:'type', index:'type', width: 120, fixed: true,
+                //formatter:'select',
+                stype: 'select',
+                searchoptions: {
+                    sopt: ['eq'], value: ":All;device:device;channel:channel;state:state;enum:enum;host:host;adapter:adapter;meta:meta;path:path;config:config"
+                }
+            }
         ],
         pager: $('#pager-objects'),
         rowNum: 100,
@@ -98,7 +113,7 @@ $(document).ready(function () {
                     }
                 });
             }
-            alert('TODO edit ' + objSelected.slice(7)); //TODO
+            editObject(objSelected.slice(7));
         },
         position: 'first',
         id: 'edit-object',
@@ -236,13 +251,11 @@ $(document).ready(function () {
     });
 
 
-
     var toplevel = [];
     var children = {};
     var objects = {};
 
     function getObjects(callback) {
-        $("#load_grid-objects").show();
         $gridObjects.jqGrid('clearGridData');
         socket.emit('getObjectList', {include_docs:true}, function (err, res) {
             for (var i = 0; i < res.rows.length; i++) {
@@ -265,7 +278,6 @@ $(document).ready(function () {
     }
 
     function getStates(callback) {
-        $("#load_grid-states").show();
         $gridStates.jqGrid('clearGridData');
         socket.emit('getForeignStates', '*', function (err, res) {
             var i = 0;
@@ -282,6 +294,14 @@ $(document).ready(function () {
             if (typeof callback === 'function') callback();
         });
     }
+
+    function editObject(id) {
+        $('#json-object').val(JSON.stringify(objects[id], null, '  '));
+        $dialogObject.dialog('open');
+    };
+
+
+
 
 
 
@@ -304,9 +324,13 @@ $(document).ready(function () {
         if (firstConnect) {
             firstConnect = false;
             // Here we go!
+            $("#load_grid-objects").show();
+            $("#load_grid-states").show();
             getObjects(getStates);
         }
     });
+
+
 
     function formatDate(dateObj) {
         return dateObj.getFullYear() + '-' +

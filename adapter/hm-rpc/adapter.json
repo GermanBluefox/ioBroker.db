@@ -14,7 +14,7 @@
         "init":                     true,
         "checkInit":                false,
         "checkInitInterval":        180,
-        "checkInitTrigger":         "Bidcos-RF:50.PRESS_LONG"
+        "checkInitTrigger":         "BidCos-RF:50.PRESS_LONG"
     },
     "objects": [
         {
