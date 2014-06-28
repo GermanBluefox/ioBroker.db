@@ -52,12 +52,14 @@ table#events {
     display: none !important;
 }
 
-#json-object {
-    width: 100%;
-    height: 100%;
+#edit-object-common, #edit-object-native {
+    font-size: 12px;
+    width: 300px;
+    height: 240px;
     padding:0;
     margin:0;
-    border: none;
+    border: 1px solid grey;
     outline: none;
     box-shadow: none;
+    resize:none;
 }

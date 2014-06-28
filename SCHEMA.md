@@ -37,6 +37,11 @@ Following attributes have to exist in every object:
 * common (includes an object with mandatory attributes for specific type)
 * native
 
+### Optional attributes
+
+* name
+* parent
+
 ### Tree structure
 
 Objects can have a *parent* attribute containing the *id* of their parent to build a tree structure. This should be
@@ -62,7 +67,6 @@ limited to 3 levels (except for objects of type path)
 
 #### state
 
-* common.name
 * common.type (possible values: number, string, boolean, array, object)
 * common.role (indicates how this state should be represented in user interfaces)
 
@@ -91,11 +95,11 @@ limited to 3 levels (except for objects of type path)
 
 #### channel
 
-* common.name
+
 
 #### device
 
-* common.name
+
 
 #### meta
 
@@ -111,7 +115,6 @@ id
 
 id *system.adapter.&lt;adapter.name&gt;*
 
-* common.name
 * common.mode
 * common.enabled (value should be false so new instances are disabled by default)
 * common.language (possible values: javascript, other)
@@ -121,7 +124,6 @@ id *system.adapter.&lt;adapter.name&gt;*
 
 id *system.adapter.&lt;adapter.name&gt;.&lt;instance-number&gt;*
 
-* common.name
 * common.host (host where the adapter should be started at - object *system.host.&lt;host&gt;* must exist
 * common.enabled
 * common.mode (possible values see below)
@@ -142,12 +144,10 @@ id *system.host.&lt;host&gt;*
 
 #### path
 
-* common.name (folder name)
 * common.children (array of child objects of the type path)
 
 #### file
 
 * parent (id of a path object)
-* common.name
 * common.size (size in kBytes)
 * CouchDB-Attachment

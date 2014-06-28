@@ -10,7 +10,20 @@ $(document).ready(function () {
         modal:      true,
         width: 640,
         height: 480,
-        buttons: []
+        buttons: [
+            {
+                text: 'Save',
+                click: saveObject
+
+            },
+            {
+                text: 'Cancel',
+                click: function () {
+                    $dialogObject.dialog('close');
+                    $('#json-object').val('');
+                }
+            }
+        ]
     });
 
     var $gridObjects = $('#grid-objects');
@@ -296,9 +309,21 @@ $(document).ready(function () {
     }
 
     function editObject(id) {
-        $('#json-object').val(JSON.stringify(objects[id], null, '  '));
+        var obj = objects[id];
+        $dialogObject.dialog('option', 'title', id);
+        $('#edit-object-id').val(obj._id);
+        $('#edit-object-parent-old').val(obj.parent);
+        $('#edit-object-name').val(obj.name);
+        $('#edit-object-type').val(obj.type);
+        $('#edit-object-parent').val(obj.parent);
+        $('#edit-object-common').val(JSON.stringify(obj.common, null, '  '));
+        $('#edit-object-native').val(JSON.stringify(obj.native, null, '  '));
         $dialogObject.dialog('open');
-    };
+    }
+
+    function saveObject() {
+
+    }
 
 
 
