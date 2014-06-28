@@ -6,8 +6,7 @@
 
 # 0.2
 
-* Objekt-Modell dokumentieren
-* Adapter-Entwicklung dokumentieren
+
 * admin-ui: delete object
 * admin-ui: edit object
 * admin-ui: add object
@@ -44,10 +43,13 @@
 * Adapter web auth mit Benutzerverwaltung in Admin UI
 
 # 0.7
-* Adapter dummy-php
+
+* Objekt-Modell freeze / dokumentieren
+* Adapter-Entwicklung dokumentieren, API freeze
 
 # 0.8
 
+* Adapter dummy-php
 * Adapter dummy-py
 * Adapter dummy-rb
 
