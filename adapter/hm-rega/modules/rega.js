@@ -45,19 +45,17 @@ rega.prototype = {
 
     },
     checkTime: function (callback) {
-        this.script('WriteLine(system.Date("%F %X").ToTime().ToInteger());', function (data, err) {
-            if (!err) {
-                var ccuTime = parseInt(data, 10);
-                var localTime = Math.round(new Date().getTime() / 1000);
-                var diff = localTime - ccuTime;
-                if (diff > 10) {
-                    this.logger.warning("time difference local-ccu " + diff.toString() + "s");
-                } else {
-                    this.logger.info("time difference local-ccu " + diff.toString() + "s");
-                }
-
+        var that = this;
+        this.script('Write(system.Date("%F %X").ToTime().ToInteger());', function (data, xml) {
+            var ccuTime = parseInt(data, 10);
+            var localTime = Math.round(new Date().getTime() / 1000);
+            var diff = localTime - ccuTime;
+            if (diff > 10) {
+                that.logger.warn("time difference local-ccu " + diff.toString() + "s");
+            } else {
+                that.logger.info("time difference local-ccu " + diff.toString() + "s");
             }
-            callback(0, err);
+            if (typeof callback === 'function') callback(diff);
         });
     },
     loadTranslation: function (lang, callback) {
@@ -77,7 +75,7 @@ rega.prototype = {
 
                     eval(jscode);
 
-                    this.logger.verbose(langJSON);
+                    this.logger.debug(langJSON);
                     this.logger.info("ccu.io        loaded translate.lang.js");
 
                     request.get({ url: 'http://' + that.options.ccuIp + '/webui/js/lang/'+lang+'/translate.lang.stringtable.js', encoding: null }, function(err, res, body) {
@@ -91,7 +89,7 @@ rega.prototype = {
                                 callback(langJSON);
                             }
 
-                            this.logger.verbose(langJSON);
+                            this.logger.debug(langJSON);
                             this.logger.info("ccu.io        loaded translate.lang.stringtable.js");
                         } else {
                             callback(langJSON);
@@ -111,7 +109,7 @@ rega.prototype = {
                                     return;
                                 }
 
-                                this.logger.verbose(langJSON);
+                                this.logger.debug(langJSON);
                                 this.logger.info("ccu.io        loaded translate.lang.extensionV.js");
 
                             }
@@ -211,12 +209,12 @@ rega.prototype = {
         });
     },
     runScriptFile: function (script, callback) {
-        //this.logger.verbose('rega      --> ' + script + '.fn');
+        this.logger.info('--> ' + script + '.fn');
 
         var that = this;
-        fs.readFile(__dirname+'/regascripts/'+script+'.fn', 'utf8', function (err, data) {
+        fs.readFile(__dirname + '/../regascripts/' + script+'.fn', 'utf8', function (err, data) {
             if (err) {
-                this.logger.error("rega          runScriptFile "+err);
+                that.logger.error("runScriptFile " + err);
                 return false;
             }
             that.script(data, function (stdout, xml) {
@@ -226,11 +224,11 @@ rega.prototype = {
     },
     script: function (script, callback) {
         var that = this;
-        this.logger.verbose('rega      --> ' + script);
+        this.logger.info('--> ' + script);
 
         var post_options = {
             host: this.options.ccuIp,
-            port: '8181',
+            port: this.options.port,
             path: '/rega.exe',
             method: 'POST',
             headers: {
@@ -250,14 +248,15 @@ rega.prototype = {
                 var pos = data.lastIndexOf("<xml>");
                 var stdout = (data.substring(0, pos));
                 var xml = (data.substring(pos));
+                that.logger.info('<-- ' + stdout);
+
                 parser.parseString(xml, function (err, result) {
-                    this.logger.verbose('rega      <-- ' + stdout);
-                    if (callback) {
+                    if (typeof callback === 'function') {
                         if (result && result.xml) {
                             callback(stdout, result.xml);
                         } else {
-                            this.logger.error('rega          invalid response:');
-                            this.logger.error(JSON.stringify(data));
+                            that.logger.error('<-- invalid response:');
+                            that.logger.error(JSON.stringify(data));
                             callback(stdout);
                         }
                     }
