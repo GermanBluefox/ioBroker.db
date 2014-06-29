@@ -82,52 +82,83 @@ function getVariables(callback) {
         16: 'number',
         20: 'string'
     };
-    rega.runScriptFile('variables', function (data) {
-        data = JSON.parse(data);
-        for (var id in data) {
-            var obj = {
-                _id: adapter.namespace + '.' + id,
-                type: 'state',
-                name: unescape(data[id].Name),
-                common: {
-                    type:   commonTypes[data[id].ValueType],
-                    oper: {
-                        read:   true,
-                        write:  true,
-                        event:  true
+
+    adapter.objects.getObjectView('hm-rega', 'variables', {startkey: 'hm-rega.' + adapter.instance + '.', endkey: 'hm-rega.' + adapter.instance + '.\u9999'}, function (err, doc) {
+        // Todo catch error
+        var response = [];
+        for (var i = 0; i < doc.rows.length; i++) {
+            var id = doc.rows[i].value._id.split('.');
+            id = id[id.length - 1];
+            response.push(id);
+        }
+        adapter.log.info('got ' + doc.rows.length + ' variables');
+
+        rega.runScriptFile('variables', function (data) {
+            data = JSON.parse(data);
+            for (var id in data) {
+                var obj = {
+                    _id: adapter.namespace + '.' + id,
+                    type: 'state',
+                    name: unescape(data[id].Name),
+                    common: {
+                        type:   commonTypes[data[id].ValueType],
+                        oper: {
+                            read:   true,
+                            write:  true,
+                            event:  true
+                        }
+                    },
+                    native: {
+                        Name:           unescape(data[id].Name),
+                        TypeName:       data[id].TypeName,
+                        DPInfo:         unescape(data[id].DPInfo),
+                        ValueMin:       data[id].ValueMin,
+                        ValueMax:       data[id].ValueMax,
+                        ValueUnit:      data[id].ValueUnit,
+                        ValueType:      data[id].ValueType,
+                        ValueSubType:   data[id].ValueSubType,
+                        ValueList:      unescape(data[id].ValueList)
                     }
-                },
-                native: {
-                    Name:           unescape(data[id].Name),
-                    TypeName:       data[id].TypeName,
-                    DPInfo:         unescape(data[id].DPInfo),
-                    ValueMin:       data[id].ValueMin,
-                    ValueMax:       data[id].ValueMax,
-                    ValueUnit:      data[id].ValueUnit,
-                    ValueType:      data[id].ValueType,
-                    ValueSubType:   data[id].ValueSubType,
-                    ValueList:      unescape(data[id].ValueList)
+                };
+                if (data[id].ValueMin) obj.common.min = data[id].ValueMin;
+                if (data[id].ValueMax) obj.common.min = data[id].ValueMax;
+                if (data[id].ValueUnit) obj.common.min = data[id].ValueUnit;
+                if (data[id].DPInfo) obj.common.desc = unescape(data[id].DPInfo);
+                if (data[id].ValueSubType === 29) {
+                    var statesArr = unescape(data[id].ValueList).split(';');
+                    obj.common.states = {};
+                    for (var i = 0; i < statesArr.length; i++) {
+                        obj.common.states[i] = statesArr[i];
+                    }
+                    obj.common.min = 0;
+                    obj.common.max = statesArr.length - 1;
                 }
-            };
-            if (data[id].ValueMin) obj.common.min = data[id].ValueMin;
-            if (data[id].ValueMax) obj.common.min = data[id].ValueMax;
-            if (data[id].ValueUnit) obj.common.min = data[id].ValueUnit;
-            if (data[id].DPInfo) obj.common.desc = unescape(data[id].DPInfo);
-            if (data[id].ValueSubType === 29) {
-                var statesArr = unescape(data[id].ValueList).split(';');
-                obj.common.states = {};
-                for (var i = 0; i < statesArr.length; i++) {
-                    obj.common.states[i] = statesArr[i];
+
+                adapter.setObject(id, obj);
+                adapter.setState(id, {val: data[id].Value, ack: true, ts: data[id].Timestamp});
+
+                if (response.indexOf(id) !== -1) {
+                    response.splice(response.indexOf(id), 1);
                 }
-                obj.common.min = 0;
-                obj.common.max = statesArr.length - 1;
+
             }
 
-            adapter.setObject(id, obj);
-            adapter.setState(id, {val: data[id].Value, ack: true, ts: data[id].Timestamp});
-        }
-        if (typeof callback === 'function') callback();
+            adapter.log.info('deleting ' + response.length + ' variables');
+            for (var i = 0; i < response.length; i++) {
+                adapter.delObject(response[i]);
+            }
+
+            if (typeof callback === 'function') callback();
+        });
+
+
+
+
     });
+
+
+
+
 
 }
 
