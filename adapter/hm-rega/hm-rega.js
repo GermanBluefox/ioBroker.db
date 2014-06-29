@@ -83,7 +83,9 @@ function main() {
                 ccuReachable = true;
                 ccuRegaUp = true;
 
-                rega.checkTime(getVariables);
+                rega.checkTime(function () {
+                    getVariables(getDevices);
+                });
 
             }
         }
@@ -102,6 +104,41 @@ function pollVariables() {
             adapter.setState(id, {val: val, ack: true});
         }
     });
+}
+
+function getDevices(callback) {
+
+    console.log('getDevices');
+    rega.runScriptFile('devices', function (data) {
+        data = JSON.parse(data);
+        for (var addr in data) {
+            var id;
+            switch (data[addr].Interface) {
+                case 'BidCos-RF':
+                    id = adapter.config.rfdAdapter + '.';
+                    if (!adapter.config.rfdAdapter) continue;
+                    break;
+                case 'BidCos-Wired':
+                    id = adapter.config.hs485dAdapter + '.';
+                    if (!adapter.config.hs485dAdapter) continue;
+                    break;
+                case 'CUxD':
+                    id = adapter.config.cuxdAdapter + '.';
+                    if (!adapter.config.cuxdAdapter) continue;
+                    break;
+                default:
+
+            }
+
+            id += addr;
+            adapter.extendForeignObject(id, {name: unescape(data[addr].Name)});
+
+        }
+
+        if (typeof callback === 'function') callback();
+
+    });
+
 }
 
 function getVariables(callback) {

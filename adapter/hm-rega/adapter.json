@@ -13,7 +13,8 @@
         "pollingInterval":          30,
         "pollingTrigger":           "BidCoS-RF:50.PRESS_SHORT",
         "rfdAdapter":               "hm-rpc.0",
-        "hs485dAdapter":            null
+        "hs485dAdapter":            null,
+        "cuxdAdapter":              null
     },
     "objects": [
         {

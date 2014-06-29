@@ -1,3 +1,5 @@
+var extend = require('node.extend');
+
 function ObjectsCouch(settings) {
 
     var objects = {};
@@ -64,6 +66,18 @@ function ObjectsCouch(settings) {
                 log.debug('couchdb getObjectList ' + err);
             }
             callback(err, doc);
+        });
+    };
+
+    this.extendObject = function (id, obj, callback) {
+        var that = this;
+        this.getObject(id, function (err, data) {
+            obj = extend(true, data, obj);
+            console.log(id, obj);
+            couch.insert(obj, id, function (err, res) {
+                // Todo Error handling
+                if (typeof callback === 'function') callback(err, res);
+            });
         });
     };
 

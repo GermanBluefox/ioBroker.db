@@ -1,4 +1,4 @@
-!# devices.fn 1.3 CCU.IO
+!# devices.fn 1.4
 !#
 !# Dieses Homematic-Script gibt eine Liste aller Geraete als JSON String aus
 !#
@@ -6,8 +6,6 @@
 !#
 
 string sDevId;
-string sChnId;
-string sDPId;
 
 Write('{');
 
@@ -20,7 +18,7 @@ Write('{');
     boolean bDevReady = oDevice.ReadyConfig();
     string sDevInterfaceId = oDevice.Interface();
     string sDevInterface   = dom.GetObject(sDevInterfaceId).Name();
-
+    
     if (bDevReady) {
 
         if (dFirst) {
@@ -29,24 +27,9 @@ Write('{');
           WriteLine(',');
         }
 
-        Write('"' # sDevId # '":{"Name":"');
+        Write('"' # oDevice.Address() # '":{"Name":"');
         WriteURL(oDevice.Name());
-        Write('","TypeName":"' # oDevice.TypeName());
-        Write('","HssType":"' # oDevice.HssType() # '","Address":"' # oDevice.Address() # '","Interface":"' # sDevInterface);
-        Write('","Channels":[');
-
-        string sChnId;
-
-        boolean cFirst = true;
-        foreach(sChnId, oDevice.Channels()) {
-            if (cFirst) {
-                cFirst = false;
-            } else {
-                Write(',');
-            }
-            Write(sChnId);
-        }
-        Write(']}');
+      Write('","Interface":"' # sDevInterface # '"}');
     }
 }
 Write('}');
