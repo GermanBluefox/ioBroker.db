@@ -224,7 +224,7 @@ rega.prototype = {
     },
     script: function (script, callback) {
         var that = this;
-        this.logger.info('--> ' + script);
+        this.logger.debug('--> ' + script);
 
         var post_options = {
             host: this.options.ccuIp,
@@ -248,7 +248,7 @@ rega.prototype = {
                 var pos = data.lastIndexOf("<xml>");
                 var stdout = (data.substring(0, pos));
                 var xml = (data.substring(pos));
-                that.logger.info('<-- ' + stdout);
+                that.logger.debug('<-- ' + stdout);
 
                 parser.parseString(xml, function (err, result) {
                     if (typeof callback === 'function') {
