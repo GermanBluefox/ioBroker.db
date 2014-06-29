@@ -11,7 +11,7 @@
         "port":                     8181,
         "polling":                  true,
         "pollingInterval":          30,
-        "pollingTrigger":           "BidCos-RF:50.PRESS_SHORT",
+        "pollingTrigger":           "BidCoS-RF:50.PRESS_SHORT",
         "rfdAdapter":               "hm-rpc.0",
         "hs485dAdapter":            null
     },

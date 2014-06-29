@@ -3,31 +3,28 @@ var adapter = require('../../modules/adapter.js')({
     name:           'hm-rega',
     version:        '0.0.1',
 
-    // Wird aufgerufen wenn sich ein Objekt - das via adapter.subscribeObjects aboniert wurde - ändert.
     objectChange: function (id, obj) {
+        adapter.log.debug('obectChange ' + id + ' ' + JSON.stringify(obj));
 
     },
-    // Wird aufgerufen wenn sich ein Status - der via adapter.subscribeStates aboniert wurde - ändert.
+
     stateChange: function (id, state) {
-        adapter.log.info('stateChange ' + id + ' ' + JSON.stringify(state));
-    },
+        adapter.log.debug('stateChange ' + id + ' ' + JSON.stringify(state));
 
-    // Wird aufgerufen bevor der Adapter beendet wird - callback muss unbedingt aufgerufen werden!
-    unload: function (callback) {
-        try {
-            if (regaPending > 0) {
-
+        if (id === pollingTrigger) {
+            pollVariables();
+        } else {
+            var rid = id.split('.');
+            rid = rid[rid.length - 1];
+            if (regaStates[rid] !== state.val) {
+                rega.script('dom.GetObject(' + rid + ').State(' + JSON.stringify(state.val) + ')');
             }
-            adapter.log.info('terminating');
-            callback();
-        } catch (e) {
-            adapter.log.error('terminating' + e);
-            callback();
         }
+
     },
 
-    // Wird aufgerufen wenn der Adapter mit den Datenbanken verbunden ist und seine Konfiguration erhalten hat.
-    // Hier einsteigen!
+    unload: stop,
+
     ready: function () {
         main();
     }
@@ -38,8 +35,27 @@ var rega;
 var regaPending = 0;
 var ccuReachable;
 var ccuRegaUp;
+var regaStates = {};
+var pollingInterval;
+var pollingTrigger;
 
 function main() {
+
+
+    if (adapter.config.pollingTrigger) {
+        if (adapter.config.pollingTrigger.match(/^BidCoS-RF/)) {
+            pollingTrigger = adapter.config.rfdAdapter + '.' + adapter.config.pollingTrigger;
+        } else {
+            pollingTrigger = adapter.config.hs485dAdapter + '.' + adapter.config.pollingTrigger;
+        }
+        adapter.log.info('subscribe ' + pollingTrigger);
+        adapter.subscribeForeignStates(pollingTrigger);
+    }
+
+    adapter.subscribeStates('*');
+
+
+    adapter.subscribeObjects('*');
 
     var Rega = require('./modules/rega.js');
 
@@ -75,6 +91,19 @@ function main() {
 
 }
 
+function pollVariables() {
+    rega.runScriptFile('polling', function (data) {
+        data = JSON.parse(data);
+        for (var id in data) {
+            regaStates[id] = unescape(data[id][0]);
+            // Todo convert and set Timestamp
+            var val = data[id][0];
+            if (typeof val === 'string') val = unescape(val);
+            adapter.setState(id, {val: val, ack: true});
+        }
+    });
+}
+
 function getVariables(callback) {
     var commonTypes = {
         2:  'boolean',
@@ -84,7 +113,7 @@ function getVariables(callback) {
     };
 
     adapter.objects.getObjectView('hm-rega', 'variables', {startkey: 'hm-rega.' + adapter.instance + '.', endkey: 'hm-rega.' + adapter.instance + '.\u9999'}, function (err, doc) {
-        // Todo catch error
+        // Todo catch errors
         var response = [];
         for (var i = 0; i < doc.rows.length; i++) {
             var id = doc.rows[i].value._id.split('.');
@@ -95,7 +124,9 @@ function getVariables(callback) {
 
         rega.runScriptFile('variables', function (data) {
             data = JSON.parse(data);
+            var count = 0;
             for (var id in data) {
+                count += 1;
                 var obj = {
                     _id: adapter.namespace + '.' + id,
                     type: 'state',
@@ -124,18 +155,23 @@ function getVariables(callback) {
                 if (data[id].ValueMax) obj.common.min = data[id].ValueMax;
                 if (data[id].ValueUnit) obj.common.min = data[id].ValueUnit;
                 if (data[id].DPInfo) obj.common.desc = unescape(data[id].DPInfo);
-                if (data[id].ValueSubType === 29) {
+                if (data[id].ValueList) {
                     var statesArr = unescape(data[id].ValueList).split(';');
                     obj.common.states = {};
                     for (var i = 0; i < statesArr.length; i++) {
                         obj.common.states[i] = statesArr[i];
                     }
-                    obj.common.min = 0;
-                    obj.common.max = statesArr.length - 1;
+                    if (data[id].ValueSubType === 29) {
+                        obj.common.min = 0;
+                        obj.common.max = statesArr.length - 1;
+                    }
+
                 }
 
                 adapter.setObject(id, obj);
-                adapter.setState(id, {val: data[id].Value, ack: true, ts: data[id].Timestamp});
+                regaStates[id] = unescape(data[id].Value);
+                // Todo convert and set Timestamp
+                adapter.setState(id, {val: unescape(data[id].Value), ack: true});
 
                 if (response.indexOf(id) !== -1) {
                     response.splice(response.indexOf(id), 1);
@@ -143,32 +179,39 @@ function getVariables(callback) {
 
             }
 
-            adapter.log.info('deleting ' + response.length + ' variables');
+            adapter.log.info('added/updated ' + count + ' variables');
+
             for (var i = 0; i < response.length; i++) {
                 adapter.delObject(response[i]);
             }
+            adapter.log.info('deleted ' + response.length + ' variables');
+
+            if (adapter.config.polling && adapter.config.pollingInterval > 0) {
+                pollingInterval = setInterval(function () {
+                    pollVariables();
+                }, adapter.config.pollingInterval * 1000);
+            }
 
             if (typeof callback === 'function') callback();
+
         });
-
-
-
 
     });
 
-
-
-
-
 }
 
+var firstStop = true;
 function stop(callback) {
+    if (firstStop) clearInterval(pollingInterval);
     if (rega.pendingRequests > 0) {
-        adapter.log.info('waiting for pending Rega request');
+        if (firstStop) adapter.log.info('waiting for pending request');
         setTimeout(function () {
             stop(callback);
         }, 500);
+    } else {
+        callback();
     }
+    firstStop = false;
 }
 
 

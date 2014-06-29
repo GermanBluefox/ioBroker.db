@@ -25,8 +25,11 @@ function StateRedis(settings) {
         if (typeof settings.change === 'function') {
             sub.on('pmessage', function (pattern, channel, message) {
                 log.debug('redis pmessage ', pattern, channel, message);
-
-                change(channel.slice(namespace.length), JSON.parse(message));
+                try {
+                    change(channel.slice(namespace.length), JSON.parse(message));
+                } catch (e) {
+                    log.error('pmessage ' + e);
+                }
             });
         }
 
@@ -82,7 +85,12 @@ function StateRedis(settings) {
             if (!oldObj) {
                 oldObj = {};
             } else {
-                oldObj = JSON.parse(oldObj);
+                try {
+                    oldObj = JSON.parse(oldObj);
+                } catch (e) {
+                    oldObj = {};
+                }
+
             }
 
             if (state.val !== undefined) {
