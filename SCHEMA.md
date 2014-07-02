@@ -75,20 +75,27 @@ limited to 3 levels (except for objects of type path)
 * button
 * button.long
 * button.stop
+
 * indicator
 * indicator.state
 * indicator.working
 * indicator.direction
 * indicator.maintenance
+
 * level
 * level.dimmer
 * level.blind
 * level.temperature
+
 * switch
+
 * value
 * value.temperature
 * value.humidity
 * value.brightness
+* value.unit
+* value.min
+* value.max
 
 
 
