@@ -8,3 +8,8 @@
 
 * (hobbyquaker) Adapter web
 * (hobbyquaker) Admin UI
+
+# 0.0.4
+
+* (hobbyquaker) hm-rega Adapter
+* (hobbyquaker) ctrl startet gecrashte Adapter automatisch neu

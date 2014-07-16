@@ -6,11 +6,11 @@
  *
  */
 
-var version = '0.0.3';
-process.title = 'iobroker.control';
+var version = '0.0.4';
+process.title = 'iobroker.ctrl';
 
 var logger = require('./modules/logger.js');
-logger.info('ioBroker.control version ' + version + ' starting');
+logger.info('ioBroker.ctrl version ' + version + ' starting');
 
 
 var fs = require('fs');
@@ -292,18 +292,22 @@ function startInstance(id) {
         var args = [instance._id.split('.').pop(), instance.common.loglevel || 'info'];
         procs[id].process = cp.fork(__dirname + '/adapter/' + name + '/' + name + '.js', args);
         procs[id].process.on('exit', function (code, signal) {
-             if (signal) {
+            states.setState(id + '.alive', {val: false});
+            if (signal) {
                 logger.warn('ctrl instance ' + id + ' terminated due to ' + signal);
-             } else if (code === null) {
-                 logger.error('ctrl instance ' + id + ' terminated abnormally');
-             } else {
-                return;
-             }
+            } else if (code === null) {
+                logger.error('ctrl instance ' + id + ' terminated abnormally');
+            } else {
+                if (procs[id].stopping) {
+                    logger.info('ctrl instance ' + id + ' terminated with code ' + code);
+                    delete procs[id].stopping;
+                    return;
+                } else {
+                    logger.error('ctrl instance ' + id + ' terminated with code ' + code);
+                }
+            }
             delete procs[id].process;
             startInstance(id);
-        });
-        procs[id].process.on('message', function (msg) {
-            logger.info('ctrl message from '+id+': '+JSON.stringify(msg));
         });
         logger.info('ctrl started ' + instance._id + ' with pid ' + procs[id].process.pid); // + ' config='+JSON.stringify(instance.native));
     } else {
@@ -318,18 +322,19 @@ function stopInstance(id, callback) {
         if (typeof callback === 'function') callback();
     } else {
         logger.info('ctrl stopping instance ' + instance._id + ' with pid ' + procs[id].process.pid);
+        procs[id].stopping = true;
         setTimeout(function (_id) {
             procs[_id].process.kill();
-            delete(procs[id].process);
+            delete(procs[_id].process);
             if (typeof callback === 'function') callback();
         }, 200, id);
     }
-
 }
 
 function restartInstance(id) {
-    stopInstance(id);
-    startInstance(id);
+    stopInstance(id, function () {
+        startInstance(id);
+    });
 }
 
 var stopFirst = true;
@@ -372,9 +377,6 @@ function stop() {
         process.exit();
     }, 5000);
 }
-
-
-
 
 process.on('SIGINT', stop);
 process.on('SIGTERM', stop);

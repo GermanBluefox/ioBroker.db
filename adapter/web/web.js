@@ -7,6 +7,9 @@ var app,
     io,
     ioSsl;
 
+var objects = {};
+var states = {};
+
 var adapter = require('../../modules/adapter.js')({
 
     // Ein paar Attribute die jeder Adapter mitbringen muss
@@ -22,11 +25,14 @@ var adapter = require('../../modules/adapter.js')({
 
     // Wird aufgerufen wenn sich ein Objekt - das via adapter.subscribeObjects aboniert wurde - ändert.
     objectChange: function (id, obj) {
+        objects[id] = obj;
+
         if (io)     io.sockets.emit('objectChange', id, obj);
         if (ioSsl)  ioSsl.sockets.emit('objectChange', id, obj);
     },
     // Wird aufgerufen wenn sich ein Status - der via adapter.subscribeStates aboniert wurde - ändert.
     stateChange: function (id, state) {
+        states[id] = state;
         if (io)     io.sockets.emit('stateChange', id, state);
         if (ioSsl)  ioSsl.sockets.emit('stateChange', id, state);
     },
@@ -66,6 +72,8 @@ function main() {
     adapter.subscribeForeignObjects('*');
 
     initWebserver();
+
+    getData();
 
 }
 
@@ -128,13 +136,40 @@ function initWebserver() {
 
 }
 
-function initSocket(socket) {
-
-    socket.on('getForeignStates', function (pattern, callback) {
-        adapter.getForeignStates(pattern, callback);
+function getData() {
+    adapter.log.info('requesting all states');
+    adapter.getForeignStates('*', function (err, res) {
+        adapter.log.info('received all states');
+        states = res;
     });
-
-    socket.on('getObjectList', function (params, callback) {
-        adapter.objects.getObjectList(params, callback);
+    adapter.log.info('requesting all objects');
+    adapter.objects.getObjectList({include_docs: true}, function (err, res) {
+        adapter.log.info('received all objects');
+        res = res.rows;
+        objects = {};
+        for (var i = 0; i < res.length; i++) {
+            objects[res[i].doc._id] = res[i].doc;
+        }
     });
 }
+
+function initSocket(socket) {
+
+    socket.on('getStates', function (callback) {
+        callback(null, states);
+    });
+
+    socket.on('getObjects', function (callback) {
+        callback(null, objects);
+    });
+
+    socket.on('setState', function (id, state, callback) {
+        adapter.setForeignState(id, state, function (err, res) {
+            callback(err, res);
+        });
+    });
+
+hhshj();
+
+}
+

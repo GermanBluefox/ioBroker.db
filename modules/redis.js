@@ -163,11 +163,8 @@ function StateRedis(settings) {
      */
     this.getState = function (id, callback) {
         client.get(namespace + id, function (err, obj) {
-
             log.debug('redis get '+id+' '+obj);
-
             if (typeof callback === 'function') callback(JSON.parse(obj));
-
         });
     };
 

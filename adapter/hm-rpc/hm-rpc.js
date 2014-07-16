@@ -193,7 +193,7 @@ function initRpcServer(type) {
         rpcServer.on('deleteDevices', function(err, params, callback) {
             log.info(adapter.config.type + 'rpc <- deleteDevices ' + params[1].length);
             for (var i = 0; i < params[1].length; i++) {
-                adapter.log.info('object ' + deviceArr[i].ADDRESS + ' deleted');
+                adapter.log.info('object ' + params[1][i].ADDRESS + ' deleted');
                 adapter.delObject(params[1][i]);
             }
             callback(null, '');

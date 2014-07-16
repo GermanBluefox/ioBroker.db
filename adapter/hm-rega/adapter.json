@@ -1,7 +1,7 @@
 {
     "common": {
         "name":                     "hm-rega",
-        "version":                  "0.0.1",
+        "version":                  "0.0.2",
         "mode":                     "daemon",
         "language":                 "javascript",
         "loglevel":                 "info"
@@ -14,7 +14,16 @@
         "pollingTrigger":           "BidCoS-RF:50.PRESS_SHORT",
         "rfdAdapter":               "hm-rpc.0",
         "hs485dAdapter":            null,
-        "cuxdAdapter":              null
+        "cuxdAdapter":              null,
+        "syncVariables":            true,
+        "syncPrograms":             false,
+        "syncNames":                false,
+        "syncRooms":                false,
+        "enumRooms":                "enum.rooms",
+        "syncFunctions":            false,
+        "enumFunctions":            "enum.functions",
+        "syncFavorites":            false,
+        "enumFavorites":            "enum.favorites"
     },
     "objects": [
         {
@@ -23,8 +32,10 @@
             "views": {
                 "variables": {
                     "map": "function(doc) {\n  if (doc._id.match(/^hm-rega\\.[0-9]+\\.[0-9]+/) && (doc.native.TypeName === 'ALARMDP' || doc.native.TypeName === 'VARDP')) {\n   emit(doc._id, doc);\n  }\n}"
+                },
+                "programs": {
+                    "map": "function(doc) {\n  if (doc._id.match(/^hm-rega\\.[0-9]+\\.[0-9]+/) && (doc.native.TypeName === 'PROGRAM')) {\n   emit(doc._id, doc);\n  }\n}"
                 }
-
             }
         }
     ]

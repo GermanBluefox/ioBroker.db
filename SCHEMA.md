@@ -12,6 +12,7 @@ a string with a maximum length of 250 bytes, hierarchically structured, levels s
 * system.adapter.     - Adapter processes
 * system.adapter.&lt;adapter-name&gt; - default config of an adapter
 * &lt;adaper-name&gt;.&lt;instance-number&gt;. - An adapters namespace
+* enum.               - Enumerations
 
 ## States
 
@@ -99,6 +100,9 @@ limited to 3 levels (except for objects of type path)
 
 #### device
 
+#### enum
+
+* common.members - optional array of member IDs
 
 
 #### meta

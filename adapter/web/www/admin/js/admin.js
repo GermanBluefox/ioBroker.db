@@ -1,6 +1,10 @@
 (function ($) {
 $(document).ready(function () {
 
+    var toplevel = [];
+    var children = {};
+    var objects = {};
+
     $('#tabs').tabs();
     $('#tabs ul.ui-tabs-nav').prepend('<li class="header">ioBroker</li>');
 
@@ -14,7 +18,6 @@ $(document).ready(function () {
             {
                 text: 'Save',
                 click: saveObject
-
             },
             {
                 text: 'Cancel',
@@ -101,7 +104,6 @@ $(document).ready(function () {
             var objSelected = $gridObjects.jqGrid('getGridParam','selrow');
             if (!objSelected) {
                 $('[id^="grid-objects"][id$="_t"]').each(function () {
-                    console.log($(this).attr("id"));
                     if ($(this).jqGrid('getGridParam','selrow')) {
                         objSelected = $(this).jqGrid('getGridParam','selrow');
                     }
@@ -120,7 +122,6 @@ $(document).ready(function () {
             var objSelected = $gridObjects.jqGrid('getGridParam','selrow');
             if (!objSelected) {
                 $('[id^="grid-objects"][id$="_t"]').each(function () {
-                    console.log($(this).attr("id"));
                     if ($(this).jqGrid('getGridParam','selrow')) {
                         objSelected = $(this).jqGrid('getGridParam','selrow');
                     }
@@ -210,6 +211,7 @@ $(document).ready(function () {
             }
         };
         $subgrid.jqGrid(gridConf);
+
         for (var i = 0; i < children[id].length; i++) {
             $subgrid.jqGrid('addRowData', 'object_' + objects[children[id][i]]._id, objects[children[id][i]]);
         }
@@ -250,10 +252,17 @@ $(document).ready(function () {
                 // success
             }, "clientArray", null, function () {
                 // afterSave
-                // Fixme this isn't triggered...
                 stateEdit = false;
                 // TODO setState
-                alert('TODO setState id=' + stateLastSelected + ' val=' + $gridStates.jqGrid("getCell", datapointsLastSel, "val") + ' ack=' + $gridStates.jqGrid("getCell", datapointsLastSel, "val"));
+                var val = $gridStates.jqGrid("getCell", stateLastSelected, "val");
+                if (val === 'true') val = true;
+                if (val === 'false') val = false;
+                if (parseFloat(val) == val) val = parseFloat(val);
+                var ack = $gridStates.jqGrid("getCell", stateLastSelected, "ack");
+                if (ack === 'true') ack = true;
+                if (ack === 'false') ack = false;
+                alert('TODO setState id=' + stateLastSelected + ' val=' + val + ' ack=' + ack);
+                console.log(stateLastSelected, {val:val, ack:ack});
             });
         }
     }).jqGrid('filterToolbar', {
@@ -264,22 +273,20 @@ $(document).ready(function () {
     });
 
 
-    var toplevel = [];
-    var children = {};
-    var objects = {};
+
 
     function getObjects(callback) {
         $gridObjects.jqGrid('clearGridData');
-        socket.emit('getObjectList', {include_docs:true}, function (err, res) {
-            for (var i = 0; i < res.rows.length; i++) {
-                var obj = res.rows[i].doc;
-                if (obj._id.slice(0, 7) === '_design') continue;
-                objects[obj._id] = obj;
+        socket.emit('getObjects', function (err, res) {
+            objects = res;
+            for (var id in objects) {
+                if (id.slice(0, 7) === '_design') continue;
+                var obj = objects[id];
                 if (obj.parent) {
                     if (!children[obj.parent]) children[obj.parent] = [];
-                    children[obj.parent].push(obj._id);
+                    children[obj.parent].push(id);
                 } else {
-                    toplevel.push(obj._id);
+                    toplevel.push(id);
                 }
             }
             for (var i = 0; i < toplevel.length; i++) {
@@ -292,7 +299,7 @@ $(document).ready(function () {
 
     function getStates(callback) {
         $gridStates.jqGrid('clearGridData');
-        socket.emit('getForeignStates', '*', function (err, res) {
+        socket.emit('getStates', function (err, res) {
             var i = 0;
             for (var key in res) {
                 var obj = res[key];

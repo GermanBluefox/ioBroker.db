@@ -1,24 +1,39 @@
 var adapter = require('../../modules/adapter.js')({
 
     name:           'hm-rega',
-    version:        '0.0.1',
+    version:        '0.0.2',
 
     objectChange: function (id, obj) {
-        adapter.log.debug('obectChange ' + id + ' ' + JSON.stringify(obj));
+        adapter.log.debug('objectChange ' + id + ' ' + JSON.stringify(obj));
 
     },
 
     stateChange: function (id, state) {
+
         adapter.log.debug('stateChange ' + id + ' ' + JSON.stringify(state));
 
         if (id === pollingTrigger) {
-            pollVariables();
+           adapter.log.info('pollingTrigger');
+           pollVariables();
         } else {
             var rid = id.split('.');
-            rid = rid[rid.length - 1];
-            if (regaStates[rid] !== state.val) {
-                rega.script('dom.GetObject(' + rid + ').State(' + JSON.stringify(state.val) + ')');
+            if (rid[3] === 'ProgramExecute') {
+                if (!state.ack && state.val) {
+                    adapter.log.info('ProgramExecute ' + rid[2]);
+                    //rega.script('dom.GetObject(' + rid[2] + ').ProgramExecute();');
+                }
+            } else if (rid[3] === 'Active') {
+                if (!state.ack) {
+                    adapter.log.info('Active ' + rid[2] + ' ' + state.val);
+                    //rega.script('dom.GetObject(' + rid[2] + ').Active(' + JSON.stringify(state.val) + ')');
+                }
+            } else {
+                if (regaStates[rid[2]] !== state.val || !state.ack) {
+                    adapter.log.info('State ' + rid[2] + ' ' + state.val);
+                    //rega.script('dom.GetObject(' + rid[2] + ').State(' + JSON.stringify(state.val) + ')');
+                }
             }
+
         }
 
     },
@@ -39,8 +54,17 @@ var regaStates = {};
 var pollingInterval;
 var pollingTrigger;
 
+var functionQueue = [];
+
+
 function main() {
 
+    if (adapter.config.syncVariables) functionQueue.push(getVariables);
+    if (adapter.config.syncPrograms) functionQueue.push(getPrograms);
+    if (adapter.config.syncNames) functionQueue.push(getDevices);
+    if (adapter.config.syncRooms) functionQueue.push(getRooms);
+    if (adapter.config.syncFunctions) functionQueue.push(getFunctions);
+    if (adapter.config.syncFavorites) functionQueue.push(getFavorites);
 
     if (adapter.config.pollingTrigger) {
         if (adapter.config.pollingTrigger.match(/^BidCoS-RF/)) {
@@ -54,11 +78,9 @@ function main() {
 
     adapter.subscribeStates('*');
 
-
     adapter.subscribeObjects('*');
 
     var Rega = require('./modules/rega.js');
-
 
     rega = new Rega({
         ccuIp: adapter.config.ip,
@@ -84,7 +106,7 @@ function main() {
                 ccuRegaUp = true;
 
                 rega.checkTime(function () {
-                    getVariables(getDevices);
+                    queue();
                 });
 
             }
@@ -93,44 +115,364 @@ function main() {
 
 }
 
+
+
+function queue() {
+    if (functionQueue.length > 0) {
+        var fn = functionQueue.pop();
+        fn(queue);
+    }
+}
+
 function pollVariables() {
     rega.runScriptFile('polling', function (data) {
         data = JSON.parse(data);
         for (var id in data) {
-            regaStates[id] = unescape(data[id][0]);
-            // Todo convert and set Timestamp
             var val = data[id][0];
             if (typeof val === 'string') val = unescape(val);
-            adapter.setState(id, {val: val, ack: true});
+            regaStates[id] = val;
+            var ts = Math.floor((new Date(data[id][1])).getTime() / 1000);
+            adapter.setState(id, {val: val, ack: true, lc: ts});
         }
+    });
+}
+
+function getPrograms(callback) {
+    adapter.objects.getObjectView('hm-rega', 'programs', {startkey: 'hm-rega.' + adapter.instance + '.', endkey: 'hm-rega.' + adapter.instance + '.\u9999'}, function (err, doc) {
+
+        // Todo catch errors
+        var response = [];
+        for (var i = 0; i < doc.rows.length; i++) {
+            var id = doc.rows[i].value._id.split('.');
+            id = id[id.length - 1];
+            response.push(id);
+        }
+        adapter.log.info('got ' + doc.rows.length + ' programs');
+
+        rega.runScriptFile('programs', function (data) {
+            data = JSON.parse(data);
+            var count = 0;
+            for (var id in data) {
+                count += 1;
+                adapter.setObject(id, {
+                    type: 'channel',
+                    name: adapter.namespace + ' Program ' + unescape(data[id].Name),
+                    common: {
+                        enabled: true
+                    },
+                    native: {
+                        Name: unescape(data[id].Name),
+                        TypeName: data[id].TypeName,
+                        PrgInfo: unescape(data[id].DPInfo)
+                    }
+                });
+
+                adapter.setObject(id + '.ProgramExecute', {
+                    type: 'state',
+                    parent: adapter.namespace + '.' + id,
+                    name: adapter.namespace + ' Program ' + unescape(data[id].Name)  + ' execute',
+                    common: {
+                        type: 'boolean',
+                        oper: {
+                            read:   true,
+                            write:  true,
+                            event:  true
+                        }
+                    },
+                    native: {
+
+                    }
+                });
+                adapter.setObject(id + '.Active', {
+                    type: 'state',
+                    name: adapter.namespace + ' Program ' + unescape(data[id].Name) + ' enabled',
+                    parent: adapter.namespace + '.' + id,
+                    common: {
+                        type: 'boolean',
+                        oper: {
+                            read:   true,
+                            write:  true,
+                            event:  true
+                        }
+                    },
+                    native: {
+
+                    }
+                });
+
+                regaStates[id] = unescape(data[id].Value);
+                var ts = Math.floor((new Date(data[id].Timestamp)).getTime() / 1000);
+
+                adapter.setState(id + '.ProgramExecute', {val: false, ack: true, lc: ts});
+                adapter.setState(id + '.Active', {val: data[id].Active, ack: true});
+
+                if (response.indexOf(id) !== -1) {
+                    response.splice(response.indexOf(id), 1);
+                }
+
+            }
+
+            adapter.log.info('added/updated ' + count + ' programs');
+
+            for (var i = 0; i < response.length; i++) {
+                adapter.delObject(response[i]);
+            }
+            adapter.log.info('deleted ' + response.length + ' programs');
+
+            if (typeof callback === 'function') callback();
+        });
+    });
+}
+
+function getFunctions(callback) {
+    rega.runScriptFile('functions', function (data) {
+        // Todo Handle Errors
+        data = JSON.parse(data);
+
+        var functions = [];
+
+        for (var regaId in data) {
+            var members = [];
+
+            var memberObjs = data[regaId].Channels;
+
+            for (var i = 0; i < memberObjs.length; i++) {
+                var id;
+                switch (memberObjs[i].Interface) {
+                    case 'BidCos-RF':
+                        id = adapter.config.rfdAdapter + '.';
+                        if (!adapter.config.rfdAdapter) continue;
+                        break;
+                    case 'BidCos-Wired':
+                        id = adapter.config.hs485dAdapter + '.';
+                        if (!adapter.config.hs485dAdapter) continue;
+                        break;
+                    case 'CUxD':
+                        id = adapter.config.cuxdAdapter + '.';
+                        if (!adapter.config.cuxdAdapter) continue;
+                        break;
+                    default:
+                        continue;
+
+                }
+                id = id + memberObjs[i].Address;
+                members.push(id);
+            }
+
+            var name = unescape(data[regaId].Name);
+            var desc = unescape(data[regaId].EnumInfo);
+            functions.push(adapter.config.enumFunctions + '.' + name);
+            adapter.setForeignObject(adapter.config.enumFunctions + '.' + name, {
+                name: name,
+                desc: desc,
+                type: 'enum',
+                parent: adapter.config.enumFunctions,
+                common: {
+                    members: members
+                },
+                native: {
+                    Name: name,
+                    TypeName: 'ENUM',
+                    EnumInfo: desc
+                }
+            });
+
+        }
+
+        adapter.log.info('added/updated ' + functions.length + ' functions to ' + adapter.config.enumFunctions);
+
+        adapter.setForeignObject(adapter.config.enumFunctions, {
+            name: 'Functions',
+            type: 'enum',
+            common: {
+                members: functions
+            },
+            native: {
+
+            }
+        });
+
+        if (typeof callback === 'function') callback();
+    });
+}
+
+function getRooms(callback) {
+    rega.runScriptFile('rooms', function (data) {
+        // Todo Handle Errors
+        data = JSON.parse(data);
+
+        var rooms = [];
+
+        for (var regaId in data) {
+            var members = [];
+
+            var memberObjs = data[regaId].Channels;
+
+            for (var i = 0; i < memberObjs.length; i++) {
+                var id;
+                switch (memberObjs[i].Interface) {
+                    case 'BidCos-RF':
+                        id = adapter.config.rfdAdapter + '.';
+                        if (!adapter.config.rfdAdapter) continue;
+                        break;
+                    case 'BidCos-Wired':
+                        id = adapter.config.hs485dAdapter + '.';
+                        if (!adapter.config.hs485dAdapter) continue;
+                        break;
+                    case 'CUxD':
+                        id = adapter.config.cuxdAdapter + '.';
+                        if (!adapter.config.cuxdAdapter) continue;
+                        break;
+                    default:
+                        continue;
+
+                }
+                id = id + memberObjs[i].Address;
+                members.push(id);
+            }
+
+            var name = unescape(data[regaId].Name);
+            var desc = unescape(data[regaId].EnumInfo);
+            rooms.push(adapter.config.enumRooms + '.' + name);
+            adapter.setForeignObject(adapter.config.enumRooms + '.' + name, {
+                name: name,
+                desc: desc,
+                type: 'enum',
+                parent: adapter.config.enumRooms,
+                common: {
+                    members: members
+                },
+                native: {
+                    Name: name,
+                    TypeName: 'ENUM',
+                    EnumInfo: desc
+                }
+            });
+
+        }
+
+        adapter.log.info('added/updated ' + rooms.length + ' rooms to ' + adapter.config.enumRooms);
+
+        adapter.setForeignObject(adapter.config.enumRooms, {
+            name: 'Rooms',
+            type: 'enum',
+            common: {
+                members: rooms
+            },
+            native: {
+
+            }
+        });
+
+        if (typeof callback === 'function') callback();
+    });
+}
+
+function getFavorites(callback) {
+    rega.runScriptFile('favorites', function (data) {
+        // Todo Handle Errors
+        data = JSON.parse(data);
+
+        var favorites = {};
+
+        adapter.setForeignObject(adapter.config.enumFavorites, {
+            type: 'enum',
+            name: 'Favorites',
+            common: {},
+            native: {}
+        });
+
+        var c = 0;
+
+        for (var user in data) {
+
+            adapter.setForeignObject(adapter.config.enumFavorites + '.' + user, {
+                type: 'enum',
+                name: user + ' Favorites',
+                parent: adapter.config.enumFavorites,
+                common: {},
+                native: {}
+            });
+
+
+            for (var fav in data[user]) {
+                var channels = data[user][fav].Channels;
+                var members = [];
+                for (var i = 0; i < channels.length; i++) {
+                    if (typeof channels[i] === 'number') {
+                        members.push(adapter.namespace + '.' + channels[i]);
+                    } else {
+                        var id;
+                        switch (channels[i].Interface) {
+                            case 'BidCos-RF':
+                                id = adapter.config.rfdAdapter + '.';
+                                if (!adapter.config.rfdAdapter) continue;
+                                break;
+                            case 'BidCos-Wired':
+                                id = adapter.config.hs485dAdapter + '.';
+                                if (!adapter.config.hs485dAdapter) continue;
+                                break;
+                            case 'CUxD':
+                                id = adapter.config.cuxdAdapter + '.';
+                                if (!adapter.config.cuxdAdapter) continue;
+                                break;
+                            default:
+                                continue;
+
+                        }
+                        id = id + channels[i].Address;
+                        members.push(id);
+
+                    }
+                }
+                c += 1;
+                adapter.setForeignObject(adapter.config.enumFavorites + '.' + user + '.' + fav, {
+                    type: 'enum',
+                    name: fav,
+                    parent: adapter.config.enumFavorites + '.' + user,
+                    common: {
+                        members: members
+                    },
+                    native: {
+                        id: data[user][fav].id,
+                        TypeName: 'FAVORITE'
+                    }
+                });
+            }
+
+        }
+
+        adapter.log.info('added/updated ' + c + ' favorites to ' + adapter.config.enumFavorites);
+
+
+        if (typeof callback === 'function') callback();
     });
 }
 
 function getDevices(callback) {
 
-    console.log('getDevices');
     rega.runScriptFile('devices', function (data) {
         data = JSON.parse(data);
         for (var addr in data) {
             var id;
             switch (data[addr].Interface) {
                 case 'BidCos-RF':
-                    id = adapter.config.rfdAdapter + '.';
                     if (!adapter.config.rfdAdapter) continue;
+                    id = adapter.config.rfdAdapter + '.';
                     break;
                 case 'BidCos-Wired':
-                    id = adapter.config.hs485dAdapter + '.';
                     if (!adapter.config.hs485dAdapter) continue;
+                    id = adapter.config.hs485dAdapter + '.';
                     break;
                 case 'CUxD':
-                    id = adapter.config.cuxdAdapter + '.';
                     if (!adapter.config.cuxdAdapter) continue;
+                    id = adapter.config.cuxdAdapter + '.';
                     break;
                 default:
-
             }
 
             id += addr;
+            adapter.log.info('extend ' + id + ' {"name":"' + unescape(data[addr].Name) + '"}');
             adapter.extendForeignObject(id, {name: unescape(data[addr].Name)});
 
         }
@@ -167,7 +509,7 @@ function getVariables(callback) {
                 var obj = {
                     _id: adapter.namespace + '.' + id,
                     type: 'state',
-                    name: unescape(data[id].Name),
+                    name: adapter.namespace + ' Variable ' + unescape(data[id].Name),
                     common: {
                         type:   commonTypes[data[id].ValueType],
                         oper: {
@@ -206,9 +548,11 @@ function getVariables(callback) {
                 }
 
                 adapter.setObject(id, obj);
-                regaStates[id] = unescape(data[id].Value);
-                // Todo convert and set Timestamp
-                adapter.setState(id, {val: unescape(data[id].Value), ack: true});
+                var val = data[id].Value;
+                if (typeof val === 'string') val = unescape(val);
+                regaStates[id] = val;
+                var ts = Math.floor((new Date(data[id].Timestamp)).getTime() / 1000);
+                adapter.setState(id, {val: val, ack: true, lc: ts});
 
                 if (response.indexOf(id) !== -1) {
                     response.splice(response.indexOf(id), 1);
