@@ -4,7 +4,6 @@
   "private": true,
   "dependencies": {
     "node.extend": "~1.0.10",
-    "hiredis": "~0.1.17",
     "daemonize2": "~0.4.2",
     "nano": "~5.10.0",
     "redis": "~0.10.3",
