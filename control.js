@@ -6,7 +6,7 @@
  *
  */
 
-var version = '0.0.4';
+var version = '0.0.5';
 process.title = 'iobroker.ctrl';
 
 var logger = require('./modules/logger.js');
