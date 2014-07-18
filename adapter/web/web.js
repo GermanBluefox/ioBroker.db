@@ -165,11 +165,9 @@ function initSocket(socket) {
 
     socket.on('setState', function (id, state, callback) {
         adapter.setForeignState(id, state, function (err, res) {
-            callback(err, res);
+            if (typeof callback === 'function') callback(err, res);
         });
     });
-
-hhshj();
 
 }
 
