@@ -1,7 +1,7 @@
 var adapter = require('../../modules/adapter.js')({
 
     name:           'hm-rega',
-    version:        '0.0.2',
+    version:        '0.1.0',
 
     objectChange: function (id, obj) {
         adapter.log.debug('objectChange ' + id + ' ' + JSON.stringify(obj));
@@ -33,9 +33,7 @@ var adapter = require('../../modules/adapter.js')({
                     //rega.script('dom.GetObject(' + rid[2] + ').State(' + JSON.stringify(state.val) + ')');
                 }
             }
-
         }
-
     },
 
     unload: stop,
@@ -114,8 +112,6 @@ function main() {
     });
 
 }
-
-
 
 function queue() {
     if (functionQueue.length > 0) {
@@ -594,5 +590,4 @@ function stop(callback) {
     }
     firstStop = false;
 }
-
 

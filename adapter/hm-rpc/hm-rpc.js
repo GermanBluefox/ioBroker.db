@@ -1,7 +1,7 @@
 var adapter = require('../../modules/adapter.js')({
 
     name:                   'hm-rpc',
-    version:                '0.0.1',
+    version:                '0.1.0',
 
     ready: function () {
         adapter.subscribeStates('*');
@@ -12,8 +12,8 @@ var adapter = require('../../modules/adapter.js')({
             var tmp = id.split('.');
             adapter.log.debug(adapter.config.type + 'rpc -> setValue ' + JSON.stringify([tmp[2], tmp[3], state.val]));
             if (channelParams[tmp[2]] && metaValues[channelParams[tmp[2]]] && metaValues[channelParams[tmp[2]]][tmp[3]]) {
-                if (!(metaValues[channelParams[tmp[2]]][tmp[3]].OPERATIONS && 2)) {
-                    adapter.log.warning(adapter.config.type + 'rpc -> setValue ' + JSON.stringify([tmp[2], tmp[3], state.val]) + ' is not writeable');
+                if (!(metaValues[channelParams[tmp[2]]][tmp[3]].OPERATIONS & 2)) {
+                    adapter.log.warn(adapter.config.type + 'rpc -> setValue ' + JSON.stringify([tmp[2], tmp[3], state.val]) + ' is not writeable');
                 }
                 var type = metaValues[channelParams[tmp[2]]][tmp[3]].TYPE;
             } else {
@@ -209,7 +209,6 @@ function initRpcServer(type) {
             callback(null, '');
         });
     });
-
 }
 
 var methods = {
@@ -322,6 +321,7 @@ function getValueParamsets() {
 
         var key = 'hm-rpc.meta.VALUES.' + cid;
         adapter.objects.getObject(key, function (err, res) {
+
             if (res && res.native) {
                 adapter.log.debug(key + ' found');
                 metaValues[cid] = res.native;
@@ -349,11 +349,9 @@ function getValueParamsets() {
                     adapter.objects.setObject(key, paramset);
                     addParamsetObjects(obj, res);
                 });
-
             }
 
         });
-
     }
 }
 

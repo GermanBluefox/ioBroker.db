@@ -1,7 +1,7 @@
 {
     "common": {
         "name":                     "hm-rega",
-        "version":                  "0.0.2",
+        "version":                  "0.1.0",
         "mode":                     "daemon",
         "language":                 "javascript",
         "loglevel":                 "info"
