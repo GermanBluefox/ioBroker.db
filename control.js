@@ -66,8 +66,6 @@ var design = {
 };
 
 
-
-
 var os = require('os');
 
 // Find first non-loopback ip

@@ -204,7 +204,7 @@ rega.prototype = {
         }
 
         var that = this;
-        this.logger.info('--> ' + script.slice(0, 80).replace(/\n/g, ' '));
+        this.logger.debug('--> ' + script.slice(0, 80).replace(/\n/g, ' '));
         var post_options = {
             host: this.options.ccuIp,
             port: this.options.port,
