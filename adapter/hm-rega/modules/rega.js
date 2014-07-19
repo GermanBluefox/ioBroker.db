@@ -26,13 +26,13 @@ var rega = function(options) {
     if (options.ccuIp) {
         request('http://'+options.ccuIp+'/ise/checkrega.cgi', function (error, response, body) {
             if (!error && response.statusCode == 200) {
-                if (body == "OK") {
+                if (body == 'OK') {
                     options.ready();
                 } else {
-                    options.ready("ReGaHSS down");
+                    options.ready('ReGaHSS down');
                 }
             } else {
-                options.ready("CCU unreachable");
+                options.ready('CCU unreachable');
             }
         });
     }
@@ -51,9 +51,9 @@ rega.prototype = {
             var localTime = Math.round(new Date().getTime() / 1000);
             var diff = localTime - ccuTime;
             if (diff > 10) {
-                that.logger.warn("time difference local-ccu " + diff.toString() + "s");
+                that.logger.warn('time difference local-ccu ' + diff.toString() + 's');
             } else {
-                that.logger.info("time difference local-ccu " + diff.toString() + "s");
+                that.logger.info('time difference local-ccu ' + diff.toString() + 's');
             }
             if (typeof callback === 'function') callback(diff);
         });
@@ -61,8 +61,8 @@ rega.prototype = {
     loadTranslation: function (lang, callback) {
         var that = this;
 
-        if (!(lang == "de" || lang == "en" || lang == "tr")) {
-            lang = "de";
+        if (!(lang == 'de' || lang == 'en' || lang == 'tr')) {
+            lang = 'de';
         }
 
 
@@ -76,9 +76,9 @@ rega.prototype = {
                     eval(jscode);
 
                     this.logger.debug(langJSON);
-                    this.logger.info("ccu.io        loaded translate.lang.js");
+                    this.logger.info('loaded translate.lang.js');
 
-                    request.get({ url: 'http://' + that.options.ccuIp + '/webui/js/lang/'+lang+'/translate.lang.stringtable.js', encoding: null }, function(err, res, body) {
+                    request.get({ url: 'http://' + that.options.ccuIp + '/webui/js/lang/' + lang + '/translate.lang.stringtable.js', encoding: null }, function(err, res, body) {
                         if (res.statusCode == 200) {
                             var str = unescape(iconv.decode(body, 'ISO-8859-1'));
                             var jscode = str.replace(/jQuery\./g, "");
@@ -90,17 +90,17 @@ rega.prototype = {
                             }
 
                             this.logger.debug(langJSON);
-                            this.logger.info("ccu.io        loaded translate.lang.stringtable.js");
+                            this.logger.info('loaded translate.lang.stringtable.js');
                         } else {
                             callback(langJSON);
                             return;
                         }
 
 
-                        request.get({ url: 'http://' + that.options.ccuIp + '/webui/js/lang/'+lang+'/translate.lang.extensionV.js', encoding: null }, function(err, res, body) {
+                        request.get({ url: 'http://' + that.options.ccuIp + '/webui/js/lang/' + lang + '/translate.lang.extensionV.js', encoding: null }, function(err, res, body) {
                             if (res.statusCode == 200) {
                                 var str = unescape(iconv.decode(body, 'ISO-8859-1'));
-                                var jscode = str.replace(/jQuery\./g, "");
+                                var jscode = str.replace(/jQuery\./g, '');
 
                                 try {
                                     eval(jscode);
@@ -110,7 +110,7 @@ rega.prototype = {
                                 }
 
                                 this.logger.debug(langJSON);
-                                this.logger.info("ccu.io        loaded translate.lang.extensionV.js");
+                                this.logger.info('loaded translate.lang.extensionV.js');
 
                             }
                             callback(langJSON);
@@ -118,7 +118,7 @@ rega.prototype = {
                     });
 
                 } catch (e) {
-                    this.logger.error("ccu.io        loadTranslation "+e);
+                    this.logger.error('loadTranslation ' + e);
                     callback(null);
                 }
 
@@ -133,7 +133,7 @@ rega.prototype = {
         language = language || "de";
 
         that.loadTranslation(language, function (translation) {
-            request.get({ url: 'http://' + that.options.ccuIp + '/config/stringtable_de.txt', encoding: null }, function(err, res, body) {
+            request.get({ url: 'http://' + that.options.ccuIp + '/config/stringtable_de.txt', encoding: null}, function(err, res, body) {
                 var data = body;
                 var str = iconv.decode(data, 'ISO-8859-1');
                 var dataArr = str.split("\n");
@@ -173,48 +173,20 @@ rega.prototype = {
 
                     }
                 }
-                this.logger.info("ccu.io        stringtable loaded");
+                this.logger.info('stringtable loaded');
                 callback(lang);
             });
         });
     },
-    addStringVariable: function (name, desc, str, callback) {
-        var script = "object test = dom.GetObject('"+name+"');\n" +
-            "if (test) {\n" +
-            "WriteLine('false');\n" +
-            "} else {\n" +
-            "object o = dom.CreateObject(OT_VARDP);\n" +
-            "o.Name('"+name+"');\n" +
-            "dom.GetObject(ID_SYSTEM_VARIABLES).Add(o.ID());\n" +
-            "o.DPInfo('"+desc+"');\n" +
-            "o.DPArchive(false);\n" +
-            "o.ValueUnit('');\n" +
-            "o.ValueType(20);\n" +
-            "o.ValueSubType(11);\n" +
-            "o.State('"+str+"');\n" +
-            "WriteLine(o.ID());\n" +
-            "}";
-
-        this.script(script, function (res) {
-            var id = parseInt(res, 10);
-            if (res == "false") {
-                this.logger.error("rega          addStringVariable("+name+") already exists");
-                callback(false);
-            } else if (id > 0) {
-                callback(id);
-            } else {
-                this.logger.error("rega          addStringVariable("+name+") unknown error");
-                callback(false);
-            }
-        });
-    },
     runScriptFile: function (script, callback) {
+
+
         this.logger.info('--> ' + script + '.fn');
 
         var that = this;
-        fs.readFile(__dirname + '/../regascripts/' + script+'.fn', 'utf8', function (err, data) {
+        fs.readFile(__dirname + '/../regascripts/' + script + '.fn', 'utf8', function (err, data) {
             if (err) {
-                that.logger.error("runScriptFile " + err);
+                that.logger.error('runScriptFile ' + err);
                 return false;
             }
             that.script(data, function (stdout, xml) {
@@ -223,9 +195,16 @@ rega.prototype = {
         });
     },
     script: function (script, callback) {
-        var that = this;
-        this.logger.debug('--> ' + script);
 
+        if (this.pendingRequests > 0) {
+            setTimeout(function (_script, _callback) {
+                this.script(_script, _callback);
+            }, 250, script, callback);
+            return;
+        }
+
+        var that = this;
+        this.logger.debug('--> ' + script.slice(0, 80).replace(/\n/g, ' '));
         var post_options = {
             host: this.options.ccuIp,
             port: this.options.port,
@@ -245,7 +224,7 @@ rega.prototype = {
             });
             res.on('end', function () {
                 that.pendingRequests -= 1;
-                var pos = data.lastIndexOf("<xml>");
+                var pos = data.lastIndexOf('<xml>');
                 var stdout = (data.substring(0, pos));
                 var xml = (data.substring(pos));
                 that.logger.debug('<-- ' + stdout);
@@ -264,17 +243,16 @@ rega.prototype = {
 
             });
         });
-
-        post_req.on('error', function(e) {
-            this.logger.error('rega          post request error: ' + e.message);
+        var that = this;
+        post_req.on('error', function (e) {
+            that.logger.error('post request error: ' + e.message);
             if (callback) {
-                callback(null, 'rega          post request error: ' + e.message);
+           //     callback(null, 'post request error: ' + e.message);
             }
         });
 
         post_req.write(script);
         post_req.end();
-
 
     }
 };

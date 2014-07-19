@@ -2,14 +2,15 @@
 
 * Adapter hm-rpc
 * Adapter hm-rega
-* enum Objekte, Methode getEnumObjects in Modul adapter.js
+* enum Objekte
 
 # 0.2
 
-
+* admin-ui: setState
 * admin-ui: delete object
 * admin-ui: edit object
 * admin-ui: add object
+* admin-ui: manage enums
 * Adapter bcontrol
 * Adapter hue
 
@@ -23,7 +24,7 @@
 
 # 0.4
 
-* Dateien (Attachments) in CouchDB
+* Files (Attachments) in CouchDB / Virtual Filesystem
 * Adapter webserver -> Beginn Portierung ioBroker.vis (DashUI), ioBroker.mobile (yahui)
 * Adapter hm-rpc: binrpc implementieren, CUxD Unterstützung
 * Adapter geofency
@@ -32,7 +33,7 @@
 # 0.5
 
 * iobroker.js add adapter - prüfen ob package.json im adapter-verzeichnis vorliegt und ggf. automatisch npm install aufrufen
-* adapter.json - nach-Installations-
+* adapter.json - pre/post install scripts
 * Adapter-Installation über Admin UI, Zipfile-URL (kann Github sein, aber muss nicht) zum frei eingeben, außerdem Liste von "offiziellen" Adaptern zum auswählen die von iobroker.com heruntergeladen wird.
 * Adapter Instanzen erzeugen über Admin UI
 * Adapter Konfiguration - html config über Admin UI
@@ -49,9 +50,12 @@
 
 # 0.8
 
-* Adapter dummy-php
-* Adapter dummy-py
-* Adapter dummy-rb
+* ctrl: support non-javascript adapters
+* Adapter dummy-java / module
+* Adapter dummy-perl / module
+* Adapter dummy-php / module
+* Adapter dummy-py / module
+* Adapter dummy-rb / module
 
 # 0.9
 

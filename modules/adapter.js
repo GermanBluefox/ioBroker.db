@@ -1,6 +1,6 @@
 var net = require('net');
 var fs = require('fs');
-var config = JSON.parse(fs.readFileSync('conf/iobroker.json'));
+var config = JSON.parse(fs.readFileSync(__dirname + '/../conf/iobroker.json'));
 
 function Adapter(options) {
     var that = this;
@@ -72,19 +72,18 @@ function Adapter(options) {
         that.setObject = function setObject(id, obj, callback) {
             that.objects.setObject(that.namespace + '.' + id, obj, callback);
         };
+
         that.extendObject = function extendObject(id, obj, callback) {
             that.objects.extendObject(that.namespace + '.' + id, obj, callback);
         };
 
-        that.setForeginObject = function setForeignObject(id, obj, callback) {
+        that.setForeignObject = function setForeignObject(id, obj, callback) {
             that.objects.setObject(id, obj, callback);
         };
 
         that.extendForeignObject = function extendObject(id, obj, callback) {
             that.objects.extendObject(id, obj, callback);
         };
-
-
 
         that.getObject = function getObject(id, callback) {
             that.objects.getObject(that.namespace + '.' + id, callback);

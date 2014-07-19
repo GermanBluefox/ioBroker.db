@@ -70,10 +70,8 @@ function ObjectsCouch(settings) {
     };
 
     this.extendObject = function (id, obj, callback) {
-        var that = this;
         this.getObject(id, function (err, data) {
             obj = extend(true, data, obj);
-            console.log(id, obj);
             couch.insert(obj, id, function (err, res) {
                 // Todo Error handling
                 if (typeof callback === 'function') callback(err, res);
@@ -82,6 +80,7 @@ function ObjectsCouch(settings) {
     };
 
     this.setObject = function (id, obj, callback) {
+        if (!obj._id) obj._id = id;
         log.debug('couchdb setObject ' + id);
         couch.head(id, function(err, _, headers) {
             if (!err) {

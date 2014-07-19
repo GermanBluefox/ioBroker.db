@@ -2,14 +2,7 @@ var adapter = require('../../modules/adapter.js')({
 
     // Ein paar Attribute die jeder Adapter mitbringen muss
     name:           'dummy',
-    version:        '0.0.0',
-
-    daemon:         true,
-
-    // Default Config
-    config: {
-        testTimeout: 30
-    },
+    version:        '0.0.1',
 
     // Wird aufgerufen wenn sich ein Objekt - das via adapter.subscribeObjects aboniert wurde - ändert.
     objectChange: function (id, obj) {

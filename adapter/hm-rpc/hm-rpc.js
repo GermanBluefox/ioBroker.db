@@ -1,37 +1,39 @@
 var adapter = require('../../modules/adapter.js')({
 
     name:                   'hm-rpc',
-    version:                '0.0.1',
-    mode:                   'daemon',
-
-    // defaults
-    config: {
-        ip:                 '172.16.23.7',
-        port:               '2001',
-        type:               'xml',
-        daemon:             'rfd',
-        init:               true,
-        checkInit:          false,
-        checkInitInterval:  180,
-        checkInitTrigger:   'Bidcos-RF:50.PRESS_LONG'
-    },
-
-
+    version:                '0.1.0',
 
     ready: function () {
         adapter.subscribeStates('*');
-        //adapter.subscribeObjects('*');
         main();
     },
-    //objectChange: function (id, obj) {
-    //
-    //},
     stateChange: function (id, state) {
         if (state.ack !== true) {
             var tmp = id.split('.');
-            adapter.log.info(adapter.config.type + 'rpc -> setValue ' + JSON.stringify([tmp[0], tmp[1], state.val]));
-            rpcClient.methodCall('setValue', [tmp[0], tmp[1], state.val], function () {
-
+            adapter.log.debug(adapter.config.type + 'rpc -> setValue ' + JSON.stringify([tmp[2], tmp[3], state.val]));
+            if (channelParams[tmp[2]] && metaValues[channelParams[tmp[2]]] && metaValues[channelParams[tmp[2]]][tmp[3]]) {
+                if (!(metaValues[channelParams[tmp[2]]][tmp[3]].OPERATIONS & 2)) {
+                    adapter.log.warn(adapter.config.type + 'rpc -> setValue ' + JSON.stringify([tmp[2], tmp[3], state.val]) + ' is not writeable');
+                }
+                var type = metaValues[channelParams[tmp[2]]][tmp[3]].TYPE;
+            } else {
+                var type = 'UNKNOWN';
+            }
+            switch (type) {
+                case 'BOOL':
+                    var val = state.val ? true : false;
+                    break;
+                case 'FLOAT':
+                    var val = {explicitDouble: state.val};
+                    break;
+                default:
+                    var val = state.val;
+            }
+            rpcClient.methodCall('setValue', [tmp[2], tmp[3], val], function (err, data) {
+                if (err) {
+                    adapter.log.error(adapter.config.type + 'rpc -> setValue ' + JSON.stringify([tmp[2], tmp[3], state.val]));
+                    adapter.log.error(err);
+                }
             });
         }
     },
@@ -58,7 +60,7 @@ var adapter = require('../../modules/adapter.js')({
             "language": "javascript",
             "views": {
                 "listDevices": {
-                    "map": "function(doc) {\n  if (doc._id.match(/^hm-rpc\\.[0-9]+\\.\\*?[A-Za-z0-9_-]+(:[0-9]+)?$/)) {\n   emit(doc._id, {ADDRESS:doc.native.ADDRESS,VERSION:doc.native.VERSION});\n  }\n}"
+                    "map": "function(doc) {\n  if (doc._id.match(/^hm-rpc\\.[0-9]+\\.\\*?[A-Za-z0-9_-]+(:[0-9]+)?$/)) {\n   emit(doc._id, {ADDRESS:doc.native.ADDRESS,VERSION:doc.native.VERSION,PARENT_TYPE:doc.native.PARENT_TYPE,TYPE:doc.native.TYPE});\n  }\n}"
                 },
                 "paramsetDescription": {
                     "map": "function(doc) {\n  if (doc._id.match(/^hm-rpc\\.meta/) && doc.meta.type === 'paramsetDescription') {\n   emit(doc._id, doc);\n  }\n}"
@@ -67,7 +69,7 @@ var adapter = require('../../modules/adapter.js')({
         };
         adapter.objects.setObject(design._id, design, function () {
             log.info('object _design/hm-rpc created');
-            callback();
+            if (typeof callback === 'function') callback();
         });
     }
 });
@@ -80,6 +82,8 @@ var rpcServer;
 var rpcServerStarted;
 
 var metaValues = {};
+var channelParams = {};
+
 
 var xmlrpc = require('xmlrpc');
 var iconv = require('iconv-lite');
@@ -94,6 +98,13 @@ function main() {
     if (adapter.config.init) {
         if (!rpcServerStarted) initRpcServer(adapter.config.type);
     }
+
+    adapter.objects.getObjectView('hm-rpc', 'paramsetDescription', {startkey: 'hm-rpc.meta.VALUES', endkey: 'hm-rpc.meta.VALUES.\u9999'}, function (err, doc) {
+        var response = [];
+        for (var i = 0; i < doc.rows.length; i++) {
+            metaValues[doc.rows[i].id.slice(19)] = doc.rows[i].value.native;
+        }
+    });
 
 }
 
@@ -114,7 +125,6 @@ function initRpcServer(type) {
 
         rpcClient.methodCall('init', [protocol + adapter.host + ':' + port, adapter.namespace], function (err, data) { });
 
-
         rpcServer.on('NotFound', function(method, params) {
             adapter.log.warn(type + 'rpc <- undefined method ' + method + ' ' + JSON.stringify(params).slice(0, 80));
         });
@@ -127,7 +137,6 @@ function initRpcServer(type) {
                 } else {
                     response.push('');
                 }
-
             }
             callback(null, response);
         });
@@ -157,49 +166,49 @@ function initRpcServer(type) {
 
                 adapter.log.info('object ' + deviceArr[i].ADDRESS + ' created');
                 adapter.setObject(deviceArr[i].ADDRESS, obj);
+
                 obj._id = adapter.namespace + '.' + deviceArr[i].ADDRESS;
 
                 if (obj.type === 'channel') {
                     var cid = obj.PARENT_TYPE + '.' + obj.TYPE + '.' + obj.VERSION;
+                    channelParams[deviceArr[i].ADDRESS] = cid;
                     if (metaValues[cid]) {
 
                     } else {
                         queueValueParamsets.push(obj);
                     }
-
                 }
             }
             getValueParamsets();
             callback(null, '');
         });
 
-
-
         rpcServer.on('listDevices', function(err, params, callback) {
             log.info(adapter.config.type + 'rpc <- listDevices ' + JSON.stringify(params));
-            //callback(null, ''); return;
-            //console.log('hm-rpc', 'listDevices', {startkey: 'hm-rpc.' + adapter.instance, endkey: 'hm-rpc.' + adapter.instance + '.\u9999'})
             adapter.objects.getObjectView('hm-rpc', 'listDevices', {startkey: 'hm-rpc.' + adapter.instance + '.', endkey: 'hm-rpc.' + adapter.instance + '.\u9999'}, function (err, doc) {
                 var response = [];
                 for (var i = 0; i < doc.rows.length; i++) {
-                    response.push(doc.rows[i].value);
+                    var val = doc.rows[i].value;
+                    if (val.PARENT_TYPE) {
+                        var cid = val.PARENT_TYPE + '.' + val.TYPE + '.' + val.VERSION;
+                        channelParams[val.ADDRESS] = cid;
+                    }
+                    response.push({ADDRESS: val.ADDRESS, VERSION: val.VERSION});
                 }
                 log.info(adapter.config.type + 'rpc -> ' + doc.rows.length + ' devices');
                 callback(null, response);
             });
-
         });
 
         rpcServer.on('deleteDevices', function(err, params, callback) {
             log.info(adapter.config.type + 'rpc <- deleteDevices ' + params[1].length);
             for (var i = 0; i < params[1].length; i++) {
-                adapter.log.info('object ' + deviceArr[i].ADDRESS + ' deleted');
+                adapter.log.info('object ' + params[1][i].ADDRESS + ' deleted');
                 adapter.delObject(params[1][i]);
             }
             callback(null, '');
         });
     });
-
 }
 
 var methods = {
@@ -237,11 +246,9 @@ function addParamsetObjects(channel, paramset) {
                     write:  (paramset[key].OPERATIONS & 2 ? true : false),
                     event:  (paramset[key].OPERATIONS & 4 ? true : false)
                 }
-
             },
             native: paramset[key]
         };
-
 
         if (obj.common.type === 'number') {
             obj.common.min = paramset[key].MIN;
@@ -314,12 +321,12 @@ function getValueParamsets() {
 
         var key = 'hm-rpc.meta.VALUES.' + cid;
         adapter.objects.getObject(key, function (err, res) {
+
             if (res && res.native) {
                 adapter.log.debug(key + ' found');
                 metaValues[cid] = res.native;
                 addParamsetObjects(obj, res.native);
                 getValueParamsets();
-
 
             } else {
 
@@ -342,11 +349,9 @@ function getValueParamsets() {
                     adapter.objects.setObject(key, paramset);
                     addParamsetObjects(obj, res);
                 });
-
             }
 
         });
-
     }
 }
 
