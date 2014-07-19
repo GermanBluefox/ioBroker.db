@@ -15,13 +15,13 @@ logger.info('ioBroker.ctrl version ' + version + ' starting');
 
 var fs = require('fs');
 var config;
-if (!fs.existsSync('conf/iobroker.json')) {
-    config = fs.readFileSync('conf/iobroker.json.dist');
+if (!fs.existsSync('./conf/iobroker.json')) {
+    config = fs.readFileSync('./conf/iobroker.json.dist');
     logger.info('creating conf/iobroker.json');
-    fs.writeFileSync('conf/iobroker.json', config);
+    fs.writeFileSync('./conf/iobroker.json', config);
     config = JSON.parse(config);
 } else {
-    config = JSON.parse(fs.readFileSync('conf/iobroker.json'));
+    config = JSON.parse(fs.readFileSync('./conf/iobroker.json'));
 }
 
 var design = {
