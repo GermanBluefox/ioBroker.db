@@ -76,23 +76,71 @@ limited to 3 levels (except for objects of type path)
 * button
 * button.long
 * button.stop
+
 * indicator
 * indicator.state
 * indicator.working
 * indicator.direction
 * indicator.maintenance
+
 * level
 * level.dimmer
 * level.blind
 * level.temperature
+
 * switch
+
 * value
 * value.temperature
 * value.humidity
 * value.brightness
+* value.unit
+* value.min
+* value.max
 
+* forecast.now.temperature
+* forecast.now.humidity
+* forecast.now.rainChance
+* forecast.now.windSpeed
+* forecast.now.windDirection
+* forecast.now.pictureUrl
+* forecast.now.text
+* 
+* forecast.next[0].temperatureMin  // forecast today
+* forecast.next[0].temperatureMax
+* forecast.next[0].pictureUrl
+* forecast.next[0].text
+* forecast.next[0].rainChance
+* 
+* forecast.next[1].temperatureMin  // forecast tomorrow and so on
+* forecast.next[1].temperatureMax
+* forecast.next[1].pictureUrl
+* forecast.next[1].text
+* forecast.next[1].rainChance
 
+* media.state  // PLAY; STOP; PAUSE; OFF
+* media.title
+* media.album
+* media.artist
+* media.duration
+* media.elapsed    
+* media.commandNext  // Next channel or next track
+* media.commandPlay  // Prev channel or prev track
+* media.commandPause // Only for player
+* media.commandStop  // Only for player
+* media.commandToggleState //PLAY => PAUSE, PAUSE => PLAY
+* media.commandToggleOnOff
+* media.commandOn
+* media.commandOff
+* media.channel      // Channel number
 
+* thermostat.actual.temperature
+* thermostat.actual.unit
+* thermostat.actual.humidity
+* thermostat.set.temperature
+* thermostat.set.unit
+* thermostat.valve
+ 
 
 #### channel
 
