@@ -16,7 +16,11 @@ a string with a maximum length of 250 bytes, hierarchically structured, levels s
 
 ## States
 
-A state is an object with following attributes:
+getState method and stateChange event delivers an object with all attributs except expire
+
+for setState method everything expect val is optional. ack defaults too false, ts and lc are set as expected
+
+attributes for getState/stateChange/setState object:
 
 * val - the actual value - can be any type that is JSON-encodeable
 * ack - a boolean flag indicating if the target system has acknowledged the value
@@ -24,7 +28,10 @@ A state is an object with following attributes:
 * lc - a unix timestamp indicating the last change of the states actual value
 * (exipre - a integer value that can be used to set states that expire after a given number of seconds)
 
-Every state has to be represented by an object of the type state.
+
+
+
+Every state has to be represented by an object of the type state containing Meta-Data for the state. see below.
 
 
 ## Objects
