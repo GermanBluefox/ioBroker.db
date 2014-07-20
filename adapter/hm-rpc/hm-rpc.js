@@ -37,7 +37,7 @@ var adapter = require('../../modules/adapter.js')({
             });
         }
     },
-    //  - callback muss unbedingt aufgerufen werden!
+    //  - callback must be called in any case!
     unload: function (callback) {
         adapter.states.setState('system.adapter.' + adapter.namespace + '.connected', {val: false});
         try {
@@ -121,7 +121,7 @@ function initRpcServer(type) {
 
         log.info(type + 'rpc server listening on ' + adapter.host + ':' + port);
 
-        log.info(type + 'rpc -> ' + adapter.config.ip + ':' + port + ' init ' + JSON.stringify([protocol + adapter.host + ':' + port, adapter.namespace]));
+        log.info(type + 'rpc -> ' + adapter.config.ip + ':' + adapter.config.port + ' init ' + JSON.stringify([protocol + adapter.host + ':' + port, adapter.namespace]));
 
         rpcClient.methodCall('init', [protocol + adapter.host + ':' + port, adapter.namespace], function (err, data) { });
 

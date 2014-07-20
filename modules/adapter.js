@@ -15,11 +15,10 @@ function Adapter(options) {
     var ipArr = [];
     for (var dev in ifaces) {
         ifaces[dev].forEach(function (details) {
-            if (dev !== 'lo') ipArr.push(details.address);
+            if (dev !== 'lo' && dev.indexOf('Loopback') == -1) ipArr.push(details.address);
         });
     }
     var firstIp = ipArr[0];
-
     var instance = process.argv[2] || 0;
     that.namespace = options.name + '.' + instance;
     var loglevel = process.argv[3] || 'info';
