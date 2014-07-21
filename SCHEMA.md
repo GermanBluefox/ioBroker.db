@@ -13,12 +13,14 @@ a string with a maximum length of 250 bytes, hierarchically structured, levels s
 * system.adapter.&lt;adapter-name&gt; - default config of an adapter
 * &lt;adaper-name&gt;.&lt;instance-number&gt;. - An adapters namespace
 * enum.               - Enumerations
+* hist.               - History Data
+
 
 ## States
 
 getState method and stateChange event delivers an object with all attributs except expire
 
-for setState method everything expect val is optional. ack defaults too false, ts and lc are set as expected
+for setState method everything expect val is optional, from is set automatically by the setState method. ack defaults too false, ts and lc are set as expected
 
 attributes for getState/stateChange/setState object:
 
@@ -26,12 +28,15 @@ attributes for getState/stateChange/setState object:
 * ack - a boolean flag indicating if the target system has acknowledged the value
 * ts - a unix timestamp indicating the last update of the state
 * lc - a unix timestamp indicating the last change of the states actual value
+* from - adapter instance that did the setState
 * (exipre - a integer value that can be used to set states that expire after a given number of seconds)
 
 
 
 
+
 Every state has to be represented by an object of the type state containing Meta-Data for the state. see below.
+
 
 
 ## Objects
@@ -86,6 +91,24 @@ attributes:
 * common.oper.read (boolean, mandatory)
 * common.oper.write (boolean, mandatory)
 * common.oper.event (boolean, mandatory)
+
+##### state common.history
+
+History function needs the history adapter
+
+fifo length is reduced to min when max is hit. set to null or leave undefined to use defaults
+
+for a list of transports see history adapter README
+
+* common.history (optional)
+* common.history.fifo (optional, highspeed history storage)
+* common.history.fifo.enabled (boolean)
+* common.history.fifo.mix (integer, min fifo length)
+* common.history.fifo.max (integer, max fifo length)
+* common.history.fifo.transports (array of strings, log-transports data should be sent to after leaving the fifo)
+* common.history.direct.enabled (boolean)
+* common.history.direct.transports (array of strings, log-transports data should be sent on change)
+
 
 
 * common.role (indicates how this state should be represented in user interfaces)

@@ -47,12 +47,12 @@ handled with care, for example with additional security measures like a reverse 
 * run ```npm install``` to install dependencies
 * if CouchDB and/or Redis aren't running on localhost you need to edit conf/iobroker.json according to your needs
 
-### Install web adapters
+### Install admin adapter
 
-* Change to the adapter directory
+* Change to the ioBroker/adapter/admin directory
 * run ```npm install``` to install dependencies
-* Change back to the iobroker root directory
-* run ```node iobroker.js add web```
+* Change back to the iobroker/ directory
+* run ```node iobroker.js add admin```
 
 ### Start ioBroker
 

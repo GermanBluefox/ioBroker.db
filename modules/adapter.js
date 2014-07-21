@@ -154,6 +154,7 @@ function Adapter(options) {
             });
 
         that.setState = function setState(id, state, callback) {
+            state.from = that.namespace;
             that.states.setState(that.namespace + '.' + id, state, callback);
         };
 
@@ -164,6 +165,7 @@ function Adapter(options) {
         that.getState = function getState(id, callback) {
             that.states.getState(that.namespace + '.' + id, state, callback);
         };
+
 
         that.getForeignState = function getForeignState(id, state, callback) {
             that.states.getState(id, state, callback);
@@ -214,8 +216,30 @@ function Adapter(options) {
             that.states.subscribe(that.namespace + '.' + pattern);
         };
 
-            logger.info(that.namespace + ' redis connected');
-            if (typeof cb === 'function') cb();
+        that.pushFifo = function pushFifo(id, state, callback) {
+            that.states.pushFifo(id, state, callback);
+        };
+
+        that.trimFifo = function trimFifo(id, start, end, callback) {
+            that.states.trimFifo(id, start, end, callback);
+        };
+
+        that.getFifoRange = function getFifoRange(id, start, end, callback) {
+            that.states.getFifoRange(id, start, end, callback);
+        };
+
+        that.getFifo = function getFifo(id, callback) {
+            that.states.getFifo(id, callback);
+        };
+
+        that.lenFifo = function lenFifo(id, callback) {
+            that.states.lenFifo(id, callback);
+        };
+
+
+
+        logger.info(that.namespace + ' redis connected');
+        if (typeof cb === 'function') cb();
     }
 
     function initAdapter(adapterConfig) {

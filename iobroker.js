@@ -1,6 +1,6 @@
 var daemon = require("daemonize2").setup({
     main: "control.js",
-    name: "iobroker.control",
+    name: "iobroker.ctrl",
     pidfile: "iobroker.pid"
 });
 
@@ -72,15 +72,12 @@ function installAdapter(adapter, callback) {
         var objs = [];
         if (adapter.objects && adapter.objects.length > 0) objs = adapter.objects;
 
+        adapter.common.enabled = false;
+
         objs.push({
             _id: 'system.adapter.' + adapter.common.name,
             type: 'adapter',
-            common: {
-                name: adapter.common.name,
-                enabled: false,
-                mode: adapter.common.mode,
-                platform: adapter.common.platform
-            },
+            common: adapter.common,
             native: adapter.native
         });
 

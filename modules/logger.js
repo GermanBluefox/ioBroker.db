@@ -1,5 +1,3 @@
-
-
 var winston = require('winston');
 //require('winston-syslog').Syslog;
 
@@ -30,27 +28,26 @@ var logger = (function () {
                     }
 
             })/*,
-             new (winston.transports.File)({
-             'filename':       'mylogfile.log',
-             'json':         false,  // If true, messages will be logged as JSON (default true).
-             'level':        'info', // Level of messages that this transport should log (default 'debug').
-             'silent':       false,  // Boolean flag indicating whether to suppress output (default false).
-             'timestamp':            // Boolean flag indicating if we should prepend output with timestamps (default false).
-             //   If function is specified, its return value will be used instead of timestamps.
+            new (winston.transports.File)({
+                 'filename':       'mylogfile.log',
+                 'json':         false,  // If true, messages will be logged as JSON (default true).
+                 'level':        'info', // Level of messages that this transport should log (default 'debug').
+                 'silent':       false,  // Boolean flag indicating whether to suppress output (default false).
+                 'timestamp':            // Boolean flag indicating if we should prepend output with timestamps (default false).
+                 //   If function is specified, its return value will be used instead of timestamps.
 
-             function () {
-             var ts = new Date();
+                 function () {
+                 var ts = new Date();
 
-             return ts.getFullYear() + '-' +
-             ("0" + (ts.getMonth() + 1).toString(10)).slice(-2) + '-' +
-             ("0" + (ts.getDate()).toString(10)).slice(-2) + ' ' +
-             ("0" + (ts.getHours()).toString(10)).slice(-2) + ':' +
-             ("0" + (ts.getMinutes()).toString(10)).slice(-2) + ':' +
-             ("0" + (ts.getSeconds()).toString(10)).slice(-2) + "." +
-             ("00" + (ts.getMilliseconds()).toString(10)).slice(-3) + " ";
-             }
-
-             })*/ /*,
+                 return ts.getFullYear() + '-' +
+                 ("0" + (ts.getMonth() + 1).toString(10)).slice(-2) + '-' +
+                 ("0" + (ts.getDate()).toString(10)).slice(-2) + ' ' +
+                 ("0" + (ts.getHours()).toString(10)).slice(-2) + ':' +
+                 ("0" + (ts.getMinutes()).toString(10)).slice(-2) + ':' +
+                 ("0" + (ts.getSeconds()).toString(10)).slice(-2) + "." +
+                 ("00" + (ts.getMilliseconds()).toString(10)).slice(-3) + " ";
+                 }
+             }) /*,
              new (winston.transports.Syslog)({
 
              https://github.com/indexzero/winston-syslog

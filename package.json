@@ -1,6 +1,6 @@
 {
   "name": "ioBroker",
-  "version": "0.0.2",
+  "version": "0.0.5",
   "private": true,
   "dependencies": {
     "node.extend": "~1.0.10",

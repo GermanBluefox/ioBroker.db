@@ -1,14 +1,17 @@
 {
     "common": {
-        "name":                     "dummy",
+        "name":                     "admin",
         "version":                  "0.0.1",
         "mode":                     "daemon",
         "language":                 "javascript",
         "loglevel":                 "info"
     },
     "native": {
-        "test1": true,
-        "test2": 42
+        "listenPort":               8080,
+        "listenPortSsl":            null,
+        "auth":                     false,
+        "authSsl":                  false,
+        "cache":                    false
     },
     "objects": [
 

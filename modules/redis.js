@@ -10,7 +10,8 @@ var redis = require("redis");
 
 function StateRedis(settings) {
 
-    var namespace =     ''; //(settings.namespace || 'io') + '.';
+    var namespace =     (settings.namespace || 'io') + '.';
+    var namespaceFifo =     (settings.namespaceFifo || 'hist') + '.';
     var change =        settings.change;
 
     var client;
@@ -169,6 +170,7 @@ function StateRedis(settings) {
     };
 
     this.getStates = function (keys, callback) {
+        // Todo prepends keys with namespace?
         client.mget(keys, function (err, obj) {
             log.debug('redis mget '+keys.length+' '+obj);
             if (typeof callback === 'function') callback(err, obj);
@@ -184,6 +186,44 @@ function StateRedis(settings) {
         log.debug('redis psubscribe ' + namespace + pattern);
         sub.psubscribe(namespace + pattern);
     };
+
+    this.pushFifoExists = function (id, state, callback) {
+        client.lpushx(namespaceFifo + id, JSON.stringify(state), function (err, obj) {
+            if (typeof callback === 'function') callback(err, obj);
+        });
+    };
+
+    this.pushFifo = function (id, state, callback) {
+        client.lpush(namespaceFifo + id, JSON.stringify(state), function (err, obj) {
+            if (typeof callback === 'function') callback(err, obj);
+        });
+    };
+
+    this.lenFifo = function (id, callback) {
+        client.llen(namespaceFifo + id, function (err, obj) {
+            if (typeof callback === 'function') callback(err, obj);
+        });
+    };
+
+    this.getFifo = function (id, callback) {
+        this.getFifoRange(id, 0, -1 , callback);
+    };
+
+    this.getFifoRange = function (id, start, end, callback) {
+        client.lrange(namespaceFifo + id, start, end, function (err, obj) {
+            for (var i = 0, l = obj.length; i < l; i++) {
+                obj[i] = JSON.parse(obj[i]);
+            }
+            if (typeof callback === 'function') callback(err, obj);
+        });
+    };
+
+    this.trimFifo = function (id, length, callback) {
+        client.ltrim(namespaceFifo + id, 0, length, function (err, obj) {
+            if (typeof callback === 'function') callback(err, obj);
+        });
+    };
+
 
 }
 

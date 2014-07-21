@@ -1,8 +1,8 @@
 var adapter = require('../../modules/adapter.js')({
 
-    // Ein paar Attribute die jeder Adapter mitbringen muss
-    name:           'dummy',
-    version:        '0.0.1',
+    //
+    name:           'example',
+    version:        '0.1.0',
 
     // Wird aufgerufen wenn sich ein Objekt - das via adapter.subscribeObjects aboniert wurde - ändert.
     objectChange: function (id, obj) {
@@ -16,7 +16,7 @@ var adapter = require('../../modules/adapter.js')({
     // Wird aufgerufen bevor der Adapter beendet wird - callback muss unbedingt aufgerufen werden!
     unload: function (callback) {
         try {
-            adapter.log.info('dummy terminating');
+            adapter.log.info('example terminating');
             callback();
         } catch (e) {
             callback();
