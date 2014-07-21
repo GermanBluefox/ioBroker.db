@@ -9,33 +9,33 @@ a string with a maximum length of 250 bytes, hierarchically structured, levels s
 
 * system.
 * system.host.        - Controller processes
+* system.config.      - System settings, like language
 * system.adapter.     - Adapter processes
 * system.adapter.&lt;adapter-name&gt; - default config of an adapter
-* &lt;adaper-name&gt;.&lt;instance-number&gt;. - An adapters namespace
+* &lt;adapter-name&gt;.&lt;instance-number&gt;. - An adapters namespace
 * enum.               - Enumerations
 * hist.               - History Data
 
-
 ## States
 
-getState method and stateChange event delivers an object with all attributs except expire
+getState method and stateChange event delivers an object with all attributes except expire
 
-for setState method everything expect val is optional, from is set automatically by the setState method. ack defaults too false, ts and lc are set as expected
+for "setState" method everything except "val" is optional, "from" is set automatically by the "setState" method. "ack" defaults to false, "ts" and "lc" are set as expected
 
 attributes for getState/stateChange/setState object:
 
-* val - the actual value - can be any type that is JSON-encodeable
-* ack - a boolean flag indicating if the target system has acknowledged the value
-* ts - a unix timestamp indicating the last update of the state
-* lc - a unix timestamp indicating the last change of the states actual value
-* from - adapter instance that did the setState
-* (exipre - a integer value that can be used to set states that expire after a given number of seconds)
+* val  - the actual value - can be any type that is JSON-encodable
+* ack  - a boolean flag indicating if the target system has acknowledged the value
+* ts   - a unix timestamp indicating the last update of the state
+* lc   - a unix timestamp indicating the last change of the state's actual value
+* from - adapter instance that did the "setState"
+* expire - a integer value that can be used to set states that expire after a given number of seconds. Can be used ony with setValue. After the value expires, it disappears from redisDB.
 
 
 
 
 
-Every state has to be represented by an object of the type state containing Meta-Data for the state. see below.
+Every *state* has to be represented by an object of the type state containing Meta-Data for the state. see below.
 
 
 
@@ -62,18 +62,17 @@ limited to 3 levels (except for objects of type path)
 
 ### Object types
 
-* state - parent should be of type channel, device, instance or host
-* channel - object to group one or more states. parent should be device
-* device - object to group one or more channels or state. should have no parent.
-* enum - objects holding a array in commom.members that points to states, channels, devices or files. enums can have a parent enum (tree-structure possible)
-* host - a host that runs a controller process
-* adapter - the default config of an adapter. presence also indicates that the adapter is succesfully installed. (suggestion: should have an attribute holding an array of the hosts where it is installed)
+* state    - parent should be of type channel, device, instance or host
+* channel  - object to group one or more states. parent should be device
+* device   - object to group one or more channels or state. should have no parent.
+* enum     - objects holding a array in common.members that points to states, channels, devices or files. enums can have a parent enum (tree-structure possible)
+* host     - a host that runs a controller process
+* adapter  - the default config of an adapter. presence also indicates that the adapter is successfully installed. (suggestion: should have an attribute holding an array of the hosts where it is installed)
 * instance - parent has to be of type adapter
-* meta - rarely changing meta information that a adapter or his instances needs
-* config - configurations
-* path - a virtual path. parent has to be another path or an anchestor of vfs.root
-* file - a object with an attached file - parent has to be of type path
-
+* meta     - rarely changing meta information that a adapter or his instances needs
+* config   - configurations
+* path     - a virtual path. parent has to be another path or an ancestor of vfs.root
+* file     - a object with an attached file - parent has to be of type path
 
 
 ### Attributes for specific types
@@ -83,14 +82,13 @@ limited to 3 levels (except for objects of type path)
 attributes:
 
 * common.type (optional - default is mixed==any type) (possible values: number, string, boolean, array, object, mixed)
-* common.min (optional)
-* common.max (optional)
+* common.min  (optional)
+* common.max  (optional)
 * common.unit (optional)
-* common.def (optional - the default value)
+* common.def  (optional - the default value)
 * common.desc (optional, string)
-* common.oper.read (boolean, mandatory)
-* common.oper.write (boolean, mandatory)
-* common.oper.event (boolean, mandatory)
+* common.oper.read  (boolean, mandatory) - true if read is possible for this state
+* common.oper.write (boolean, mandatory) - true if write is possible for this state
 
 ##### state common.history
 
@@ -101,9 +99,9 @@ fifo length is reduced to min when max is hit. set to null or leave undefined to
 for a list of transports see history adapter README
 
 * common.history (optional)
-* common.history.fifo (optional, highspeed history storage)
+* common.history.fifo (optional, high speed history storage)
 * common.history.fifo.enabled (boolean)
-* common.history.fifo.mix (integer, min fifo length)
+* common.history.fifo.min (integer, min fifo length)
 * common.history.fifo.max (integer, max fifo length)
 * common.history.fifo.transports (array of strings, log-transports data should be sent to after leaving the fifo)
 * common.history.direct.enabled (boolean)
@@ -123,10 +121,10 @@ possible values:
 * list.horizontal
 * ...
 
-* value (common.type=number, common.oper.write=false)
-* value.temperature (common.type=number, common.oper.write=false, common.unit='°C' or '°F' or 'K')
-* value.humidity (common.type=number, common.oper.write=false)
-* value.brightness (common.type=number, common.oper.write=false)
+* value             (common.type=number, common.oper.write=false)
+* value.temperature (common.type=number, common.oper.write=false, common.unit='°C' or '°F' or '°K')
+* value.humidity    (common.type=number, common.oper.write=false)
+* value.brightness  (common.type=number, common.oper.write=false)
 * ...
 
 * button (common.type=boolean)
@@ -140,73 +138,21 @@ possible values:
 * button.fastreverse
 * ...
 
-* indicator (common.type=boolean)
-* indicator.working (common.type=boolean, indicates that something the target systems is doing changes on the parent channel)
-* indicator.direction (common.type=number or string, indicates up/down, left/right, 4-way switches, wind-direction, ... )
+* indicator             (common.type=boolean)
+* indicator.working     (common.type=boolean, indicates that something the target systems is doing changes on the parent channel)
+* indicator.direction   (common.type=number or string, indicates up/down, left/right, 4-way switches, wind-direction, ... )
 * indicator.maintenance (common.type=boolean, indicates system warnings/errors, alarms, service messages, battery empty or stuff like that)
+* indicator.maintenance.desc (common.type=string, indicates system warnings/errors, alarms, service messages, battery empty or stuff like that as a text, e.g "low battery")
 * ...
 
-* level (common.type=number, common.oper.write=true)
-* level.dimmer (common.type=number, common.oper.write=true)
-* level.blind (common.type=number, common.oper.write=true)
+* level             (common.type=number, common.oper.write=true)
+* level.dimmer      (common.type=number, common.oper.write=true)
+* level.blind       (common.type=number, common.oper.write=true)
 * level.temperature (common.type=number, common.oper.write=true)
 * ...
 
 * switch (common.type=boolean, common.oper.write=true)
 * ...
-
-
-
-
-
-@Bluefox I would like to keep this more general and add the attribute common.role also to type channel to group a set
-of states (see below). let us talk via phone
-
-<del>
-~~
-* forecast.now.temperature
-* forecast.now.humidity
-* forecast.now.rainChance
-* forecast.now.windSpeed
-* forecast.now.windDirection
-* forecast.now.pictureUrl
-* forecast.now.text
-*
-* forecast.next[0].temperatureMin  // forecast today
-* forecast.next[0].temperatureMax
-* forecast.next[0].pictureUrl
-* forecast.next[0].text
-* forecast.next[0].rainChance
-*
-* forecast.next[1].temperatureMin  // forecast tomorrow and so on
-* forecast.next[1].temperatureMax
-* forecast.next[1].pictureUrl
-* forecast.next[1].text
-* forecast.next[1].rainChance
-* media.state  // PLAY; STOP; PAUSE; OFF
-* media.title
-* media.album
-* media.artist
-* media.duration
-* media.elapsed
-* media.commandNext  // Next channel or next track
-* media.commandPlay  // Prev channel or prev track
-* media.commandPause // Only for player
-* media.commandStop  // Only for player
-* media.commandToggleState //PLAY => PAUSE, PAUSE => PLAY
-* media.commandToggleOnOff
-* media.commandOn
-* media.commandOff
-* media.channel      // Channel number
-* thermostat.actual.temperature
-* thermostat.actual.unit
-* thermostat.actual.humidity
-* thermostat.set.temperature
-* thermostat.set.unit
-* thermostat.valve
-~~
-</del>
-
 
 
 
@@ -230,7 +176,7 @@ possible values:
 * dimmer
 * switch
 * color
-* color.ct
+* color.ct - color temperature °K
 * color.rgb
 * color.hsl
 * color.hslct
