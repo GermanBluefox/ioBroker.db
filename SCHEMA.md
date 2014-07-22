@@ -151,7 +151,7 @@ possible values:
 * level.temperature (common.type=number, common.oper.write=true)
 * ...
 
-* switch (common.type=boolean, common.oper.write=true)
+* switch (common.type=boolean, common.oper.write=true)  - (QUESTION) relay?(See below why)
 * ...
 
 
@@ -164,26 +164,45 @@ suggestion: the channel-objects common.role should/could imply a set of mandator
 
 possible values:
 
-* info
-* forecast
-* media
-* media.music
-* media.tv
+* info          - (QUESTION) Currency or shares rate? What else?
+* forecast      - weather forecast
+* media         - common media channel
+* media.music   - media player, like sonos, yamaha and so on
+* media.tv      - TV 
 * media...
-* thermo
-* thermo.heat
+* thermo        - Monitor or control the temperature, humidity and so on
+* thermo.heat 
 * thermo.cool
-* dimmer
-* switch
-* color
-* color.ct - color temperature °K
-* color.rgb
-* color.hsl
-* color.hslct
+* dimmer        - Light dimmer
+* switch        - Light or actor switch. Normally can be OFF or ON (may be relay?, see by remote why)
+* shutter       - Window shutter control
+* color         - Light control with ability of color changing
+* color.ct      - color temperature °K
+* color.rgb     - Set color in RGB
+* color.hsl     - Set color in Hue/Saturation/Lightness
+* color.hslct   - Set color in Hue/Saturation/Lightness with Kelvin
+* remote        - (QUESTION) ??? Button on the wall? Remote with buttons? (Possible names: keyPad, buttons, remote, keySwitch, switch - if other switch will be "relay")  
+* contact       - E.g. window or door contact, water leak sensor, fire sensor
+* contact.doorwindow
+* contact.water
+* contact.fire
+* phone         - fritz box, speedport and so on
 * ...
 
 
+##### switch - Attributes description
+* switch                       - mandatory (common.type=boolean, common.oper.write=true)
+* text.description             - optional
+* indicator.maintenance        - optional
+* indicator.maintenance.desc   - optional
+(QUESTION)  Where must be room and role? in enum.rooms.common.members ?
 
+##### dimmer - Attributes description
+* level.dimmer                 - mandatory (common.type=boolean, common.oper.write=true) - (QUESTION) Must it be readable too? 
+* value.dimmer                 - or must it be used? (QUESTION)
+* text.description             - optional
+* indicator.maintenance        - optional
+* indicator.maintenance.desc   - optional
 
 #### device
 
