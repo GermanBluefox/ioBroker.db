@@ -228,6 +228,8 @@ id *system.adapter.&lt;adapter.name&gt;*
 * common.mode
 * common.enabled (value should be false so new instances are disabled by default)
 * common.language (possible values: javascript, other)
+* common.browse (search in the home network the devices automatically) 
+
 
 
 #### instance
